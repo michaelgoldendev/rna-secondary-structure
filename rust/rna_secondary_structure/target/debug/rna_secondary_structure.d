@@ -1,0 +1,1 @@
+/home/michael/GitHub/rna-secondary-structure/rust/rna_secondary_structure/target/debug/rna_secondary_structure: /home/michael/GitHub/rna-secondary-structure/rust/rna_secondary_structure/src/main.rs /home/michael/GitHub/rna-secondary-structure/rust/rna_secondary_structure/src/secondary_structure.rs

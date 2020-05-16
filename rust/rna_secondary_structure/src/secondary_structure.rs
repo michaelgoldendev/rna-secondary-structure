@@ -27,3 +27,7 @@ impl fmt::Display for SecondaryStructure {
         write!(f, "{:?}", self.dotbracketstring())
     }
 }
+
+#[cfg(test)]
+#[path = "./secondary_structure_test.rs"]
+mod secondary_structure_test;
