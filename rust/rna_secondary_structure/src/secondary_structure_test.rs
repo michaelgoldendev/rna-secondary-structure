@@ -1,14 +1,17 @@
 use super::*;
 
 #[test]
-fn test_dotbracketstring() {
+fn test_to_dotbracketstring() {
     let pairedsites = vec![10, 7, 6, 0, 0, 3, 2, 0, 0, 1, 0, 0];
-    let dbs = String::from("(((..))..)..");
     let ss = SecondaryStructure {
         pairedsites: pairedsites.to_vec()
     };
-    assert_eq!(ss.dotbracketstring(), dbs);
+    assert_eq!(ss.dotbracketstring(), "(((..))..)..");
+}
 
-    let ss2 = from_dotbracketstring(&dbs);
-    assert_eq!(ss2.pairedsites, pairedsites);
+#[test]
+fn test_from_dotbracketstring() {
+    let pairedsites = vec![10, 7, 6, 0, 0, 3, 2, 0, 0, 1, 0, 0];
+    let ss : SecondaryStructure = "(((..))..)..".parse().unwrap();
+    assert_eq!(ss.pairedsites, pairedsites);
 }
