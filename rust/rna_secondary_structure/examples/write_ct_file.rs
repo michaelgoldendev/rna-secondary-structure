@@ -1,10 +1,13 @@
 extern crate rna_secondary_structure;
 use rna_secondary_structure::*;
+use rna_secondary_structure::secondary_structure_io::*;
 
 use std::path::Path;
 
 
 fn main() {
     let ss : secondary_structure::SecondaryStructure = "((..)..)".parse().unwrap();
-    secondary_structure_io::write_ct_file(Path::new("example.ct"), &"CGAACAAG".parse().unwrap(), &ss, None);
+    let seq = "CGAACAAG".parse().unwrap();
+    write_ct_file(Path::new("example.ct"), &seq, &ss, None);
+    write_ct_file(Path::new("example_with_title.ct"), &seq, &ss, Some(&String::from("title")));
 }
