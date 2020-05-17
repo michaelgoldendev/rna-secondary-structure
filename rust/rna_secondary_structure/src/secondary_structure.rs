@@ -9,7 +9,7 @@ pub struct SecondaryStructure {
 impl SecondaryStructure {
     /// Returns a dot bracket string representation.
     fn dotbracketstring(&self) -> String {
-        // TODO: add mixed bracket types for ambiguous structures
+        // TODO: add mixed bracket types for ambiguous/pseudoknotted structures.
         let mut dbs = String::with_capacity(self.pairedsites.len());
         for (i, j) in self.pairedsites.iter().enumerate() {
             if j == &(0 as i64) {
@@ -24,9 +24,8 @@ impl SecondaryStructure {
     }
 }
 
-
-
 /// Returns a SecondaryStructure from a dot bracket string representation.
+/// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructure.html#impl-FromStr).
 pub fn from_dotbracketstring(s : &str) -> Result<SecondaryStructure, ParseError> {
     let mut _pairedsites = vec![0; s.len()];
     let mut stack = Vec::<i64>::new();
@@ -46,6 +45,10 @@ pub fn from_dotbracketstring(s : &str) -> Result<SecondaryStructure, ParseError>
         }
     }
 
+    if stack.len() > 0 {
+        panic!("No matching bracket for '('.")
+    }
+
     let ss = SecondaryStructure {
         pairedsites: _pairedsites
     };
@@ -58,8 +61,18 @@ impl fmt::Display for SecondaryStructure {
     }
 }
 
+/// Returns a SecondaryStructure from a dot bracket string representation.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::rna_secondary_structure::secondary_structure::SecondaryStructure;
+/// let pairedsites = vec![10, 7, 6, 0, 0, 3, 2, 0, 0, 1, 0, 0];
+/// let ss : SecondaryStructure = "(((..))..)..".parse().unwrap();
+/// assert_eq!(ss.pairedsites, pairedsites);
+/// ```
 impl str::FromStr for SecondaryStructure {
-    type Err = ParseError;
+    type Err = ParseError; // TODO: I don't think this error is ever raised because of panics.
     fn  from_str(s: &str) -> Result<Self, Self::Err> {
         from_dotbracketstring(s)
     }
