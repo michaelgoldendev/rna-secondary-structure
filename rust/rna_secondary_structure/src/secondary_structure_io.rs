@@ -3,6 +3,32 @@ use std::path::Path;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 
+/// Get a connect (CT) format string representation of a sequence and SecondaryStructure.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::rna_secondary_structure::secondary_structure;
+/// use crate::rna_secondary_structure::secondary_structure_io;
+/// 
+/// let ss : secondary_structure::SecondaryStructure = "((..)..)".parse().unwrap();
+/// let seq = "CGAACAAG".parse().unwrap();
+/// let ct_string_observed = secondary_structure_io::get_ct_string(&seq, &ss, &String::from("example"));
+/// 
+/// let ct_string_expected =
+/// ">example
+/// 1	C	0	2	8	1
+/// 2	G	1	3	5	2
+/// 3	A	2	4	0	3
+/// 4	A	3	5	0	4
+/// 5	C	4	6	2	5
+/// 6	A	5	7	0	6
+/// 7	A	6	8	0	7
+/// 8	G	7	9	1	8
+/// ";
+///
+/// assert_eq!(ct_string_observed, ct_string_expected);
+/// ```
 pub fn get_ct_string(seq : &String, ss : &secondary_structure::SecondaryStructure, title : &String) -> String {
     let it = seq.chars().zip(ss.pairedsites.iter());
 
