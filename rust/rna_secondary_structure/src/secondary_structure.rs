@@ -26,7 +26,7 @@ impl SecondaryStructure {
 
 /// Returns a SecondaryStructure from a dot bracket string representation.
 /// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructure.html#impl-FromStr).
-pub fn from_dotbracketstring(s : &str) -> Result<SecondaryStructure, ParseError> {
+fn from_dotbracketstring(s : &str) -> Result<SecondaryStructure, ParseError> {
     let mut _pairedsites = vec![0; s.len()];
     let mut stack = Vec::<i64>::new();
     for (i, c) in s.chars().enumerate() {
