@@ -1,6 +1,6 @@
-use std::string::ParseError;
 use std::fmt;
 use std::str;
+use std::string::ParseError;
 
 pub struct SecondaryStructure {
     pub pairedsites: Vec<i64>
@@ -26,19 +26,18 @@ impl SecondaryStructure {
 
 /// Returns a SecondaryStructure from a dot bracket string representation.
 /// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructure.html#impl-FromStr).
-fn from_dotbracketstring(s : &str) -> Result<SecondaryStructure, ParseError> {
+fn from_dotbracketstring(s: &str) -> Result<SecondaryStructure, ParseError> {
     let mut _pairedsites = vec![0; s.len()];
     let mut stack = Vec::<i64>::new();
     for (i, c) in s.chars().enumerate() {
         if c == '(' {
             stack.push(i as i64);
-        }
-        else if c == ')' {
+        } else if c == ')' {
             let j = stack.pop();
             match j {
                 None => panic!("No matching bracket for ')'."),
                 Some(j) => {
-                    _pairedsites[i] = j+1;
+                    _pairedsites[i] = j + 1;
                     _pairedsites[j as usize] = (i as i64) + 1;
                 }
             }
@@ -72,8 +71,9 @@ impl fmt::Display for SecondaryStructure {
 /// assert_eq!(ss.pairedsites, pairedsites);
 /// ```
 impl str::FromStr for SecondaryStructure {
-    type Err = ParseError; // TODO: I don't think this error is ever raised because of panics.
-    fn  from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = ParseError;
+    // TODO: I don't think this error is ever raised because of panics.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         from_dotbracketstring(s)
     }
 }
