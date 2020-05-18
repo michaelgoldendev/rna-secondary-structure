@@ -3,6 +3,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use crate::secondary_structure;
+use crate::secondary_structure::SecondaryStructure;
 
 /// Get a connect (CT) format string representation of a sequence and SecondaryStructure.
 /// 
@@ -38,6 +39,27 @@ pub fn get_ct_string(seq: &String, ss: &secondary_structure::SecondaryStructure,
         data.push_str(&format!("{}\t{}\t{}\t{}\t{}\t{}\n", i + 1, c, i, i + 2, j, i + 1));
     }
     data
+}
+
+pub fn parse_ct_string(ct_string: &String) -> Vec<i64> {
+    let mut ls : Vec<Vec<i64>>  = Vec::new();
+    let mut pairedsites = Vec::new();
+    for line in ct_string.lines() {
+        let spl = line.trim().split_whitespace().collect::<Vec<&str>>();
+        if spl.len() > 0 && spl[0].starts_with(">") {
+            if pairedsites.len() > 0 {
+                ls.push(pairedsites.clone());
+                pairedsites.clear();
+            }
+        } else if spl.len() >= 6 && spl[0].parse::<i64>().is_ok() && spl[5].parse::<i64>().is_ok() {
+            pairedsites.push(spl[4].parse::<i64>().unwrap());
+        }
+    }
+    if pairedsites.len() > 0 {
+        ls.push(pairedsites.clone());
+        pairedsites.clear();
+    }
+    pairedsites
 }
 
 pub fn write_ct_file(path: &Path, seq: &String, ss: &secondary_structure::SecondaryStructure, title: Option<&String>) -> () {
