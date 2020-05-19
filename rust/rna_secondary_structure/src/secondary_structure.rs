@@ -3,11 +3,20 @@ use std::str;
 use std::string::ParseError;
 
 pub struct SecondaryStructure {
+    pub sequence: String,
     pub pairedsites: Vec<i64>
 }
 
 impl SecondaryStructure {
-    /// Returns a dot bracket string representation.
+
+    pub fn new(pairedsites : Vec<i64>) -> SecondaryStructure {
+        SecondaryStructure {
+            sequence : "N".repeat(pairedsites.len()),
+            pairedsites : pairedsites
+        }
+    }
+
+    /// Returns a dot bracket string representation of the secondary structure
     fn dotbracketstring(&self) -> String {
         // TODO: add mixed bracket types for ambiguous/pseudoknotted structures.
         let mut dbs = String::with_capacity(self.pairedsites.len());
@@ -48,15 +57,13 @@ fn from_dotbracketstring(s: &str) -> Result<SecondaryStructure, ParseError> {
         panic!("No matching bracket for '('.")
     }
 
-    let ss = SecondaryStructure {
-        pairedsites: _pairedsites
-    };
+    let ss = SecondaryStructure::new(_pairedsites);
     Ok(ss)
 }
 
 impl fmt::Display for SecondaryStructure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.dotbracketstring())
+        write!(f, "{}\n{}", self.sequence, self.dotbracketstring())
     }
 }
 

@@ -3,7 +3,6 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::SecondaryStructure;
 
 /// Get a connect (CT) format string representation of a sequence and SecondaryStructure.
 /// 
