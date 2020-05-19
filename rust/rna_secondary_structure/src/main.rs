@@ -15,7 +15,8 @@ fn main() {
     6	A	5	7	0	6
     7	A	6	8	0	7
     8	G	7	9	1	8";
-    secondary_structure_io::parse_ct_string(&ct_string_expected.parse().unwrap());
+    let ls = secondary_structure_io::parse_ct_string(&ct_string_expected.parse().unwrap());
+    println!("[{}]", ls.iter().fold(String::new(), |acc, num| acc + &num.to_string() + ", "));
 
     let ss = secondary_structure::SecondaryStructure::from_str("()").unwrap();
     println!("{}", ss);

@@ -4,15 +4,14 @@ use std::string::ParseError;
 
 pub struct SecondaryStructure {
     pub sequence: String,
-    pub pairedsites: Vec<i64>
+    pub pairedsites: Vec<i64>,
 }
 
 impl SecondaryStructure {
-
-    pub fn new(pairedsites : Vec<i64>) -> SecondaryStructure {
+    pub fn new(pairedsites: Vec<i64>) -> SecondaryStructure {
         SecondaryStructure {
-            sequence : "N".repeat(pairedsites.len()),
-            pairedsites : pairedsites
+            sequence: "N".repeat(pairedsites.len()),
+            pairedsites: pairedsites,
         }
     }
 
