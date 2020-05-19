@@ -16,7 +16,7 @@ use crate::secondary_structure::SecondaryStructure;
 /// let ss : secondary_structure::SecondaryStructure = "((..)..)".parse().unwrap();
 /// let seq = "CGAACAAG".to_string();
 /// let title = "example".to_string();
-/// let ct_string_observed = secondary_structure_io::get_ct_string(&seq, &ss, &title);
+/// let ct_string_observed = secondary_structure_io::get_ct_string(&seq, &ss.pairedsites, &title);
 /// 
 /// let ct_string_expected =
 /// ">example
@@ -32,8 +32,8 @@ use crate::secondary_structure::SecondaryStructure;
 ///
 /// assert_eq!(ct_string_observed, ct_string_expected);
 /// ```
-pub fn get_ct_string(seq: &String, ss: &secondary_structure::SecondaryStructure, title: &String) -> String {
-    let it = seq.chars().zip(ss.pairedsites.iter());
+pub fn get_ct_string(seq: &String, pairedsites: &Vec<i64>, title: &String) -> String {
+    let it = seq.chars().zip(pairedsites.iter());
 
     let mut data = format!(">{}\n", title);
     for (i, (c, j)) in it.enumerate() {
@@ -98,7 +98,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructure> {
     ls
 }
 
-pub fn write_ct_file(path: &Path, seq: &String, ss: &secondary_structure::SecondaryStructure, title: Option<&String>) -> () {
+pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructure, title: Option<&String>) -> () {
     let append = false;
 
     let mut file = OpenOptions::new()
@@ -110,10 +110,10 @@ pub fn write_ct_file(path: &Path, seq: &String, ss: &secondary_structure::Second
         .expect("Cannot open file");
 
     if let Some(x) = title {
-        let data = get_ct_string(seq, ss, x);
+        let data = get_ct_string(&ss.sequence, &ss.pairedsites, x);
         file.write_all(data.as_bytes()).expect("Write failed.");
     } else {
-        let data = get_ct_string(seq, ss, &format!("{}", seq.len()));
+        let data = get_ct_string(&ss.sequence, &ss.pairedsites, &format!("{}", &ss.sequence.len()));
         file.write_all(data.as_bytes()).expect("Write failed.");
     }
 }

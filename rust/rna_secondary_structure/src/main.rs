@@ -28,6 +28,6 @@ fn main() {
     // println!("{}", ss);
 
     let ss: secondary_structure::SecondaryStructure = "((..)..)".parse().unwrap();
-    secondary_structure_io::write_ct_file(Path::new("test.ct"), &"CGAACAAG".parse().unwrap(), &ss, None);
+    secondary_structure_io::write_ct_file(Path::new("test.ct"), &ss, None);
     println!("{}", ss);
 }
