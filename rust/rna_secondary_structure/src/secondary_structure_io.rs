@@ -1,9 +1,10 @@
 use std::fs::OpenOptions;
+use std::io::Error;
 use std::io::prelude::*;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::SecondaryStructure;
+use crate::secondary_structure::SecondaryStructureRecord;
 
 /// Get a connect (CT) format string representation of a sequence and SecondaryStructure.
 /// 
@@ -13,7 +14,7 @@ use crate::secondary_structure::SecondaryStructure;
 /// use crate::rna_secondary_structure::secondary_structure;
 /// use crate::rna_secondary_structure::secondary_structure_io;
 /// 
-/// let ss : secondary_structure::SecondaryStructure = "((..)..)".parse().unwrap();
+/// let ss : secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
 /// let seq = "CGAACAAG".to_string();
 /// let title = "example".to_string();
 /// let ct_string_observed = secondary_structure_io::get_ct_string(&seq, &ss.pairedsites, &title);
@@ -68,15 +69,15 @@ pub fn get_ct_string(seq: &String, pairedsites: &Vec<i64>, title: &String) -> St
 /// assert_eq!(observed_ss.sequence, seq);
 /// assert_eq!(observed_ss.pairedsites, pairedsites);
 /// ```
-pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructure> {
-    let mut ls: Vec<SecondaryStructure> = Vec::new();
+pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
+    let mut ls: Vec<SecondaryStructureRecord> = Vec::new();
     let mut sequence = "".to_string();
     let mut pairedsites = Vec::new();
     for line in ct_string.lines() {
         let spl = line.trim().split_whitespace().collect::<Vec<&str>>();
         if spl.len() > 0 && spl[0].starts_with(">") {
             if pairedsites.len() > 0 {
-                ls.push(SecondaryStructure {
+                ls.push(SecondaryStructureRecord {
                     sequence: sequence.to_string(),
                     pairedsites: pairedsites.clone(),
                 });
@@ -89,7 +90,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructure> {
         }
     }
     if pairedsites.len() > 0 {
-        ls.push(SecondaryStructure {
+        ls.push(SecondaryStructureRecord {
             sequence: sequence.to_string(),
             pairedsites: pairedsites.clone(),
         });
@@ -98,7 +99,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructure> {
     ls
 }
 
-pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructure, title: Option<&String>) -> () {
+pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord, title: Option<&String>) -> () {
     let append = false;
 
     let mut file = OpenOptions::new()
@@ -107,13 +108,13 @@ pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructure, 
         .append(append)
         .truncate(!append)
         .open(&path)
-        .expect("Cannot open file");
+        .map_err(|err| println!("{:?}", err)).unwrap();
 
     if let Some(x) = title {
         let data = get_ct_string(&ss.sequence, &ss.pairedsites, x);
-        file.write_all(data.as_bytes()).expect("Write failed.");
+        file.write_all(data.as_bytes()).map_err(|err| println!("{:?}", err)).ok();
     } else {
         let data = get_ct_string(&ss.sequence, &ss.pairedsites, &format!("{}", &ss.sequence.len()));
-        file.write_all(data.as_bytes()).expect("Write failed.");
+        file.write_all(data.as_bytes()).map_err(|err| println!("{:?}", err)).ok();
     }
 }
