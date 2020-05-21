@@ -6,6 +6,12 @@ use std::str::FromStr;
 use rna_secondary_structure::*;
 
 fn main() {
+    let p1 = secondary_structure_metrics::get_structure_star(100);
+    let p2 = secondary_structure_metrics::get_structure_zero(100);
+    let dist1 = secondary_structure_metrics::get_mountain_distance(&p1, &p2, 1.0);
+    let dist2 = secondary_structure_metrics::get_mountain_diameter(100, 1.0);
+    println!("{:?} {:?}", dist1, dist2);
+
     let ct_string_expected = ">example
     1	C	0	2	8	1
     2	G	1	3	5	2
