@@ -11,12 +11,12 @@ use crate::secondary_structure::SecondaryStructureRecord;
 /// 
 /// ```
 /// use crate::rna_secondary_structure::secondary_structure;
-/// use crate::rna_secondary_structure::secondary_structure_io;
+/// use crate::rna_secondary_structure::io;
 /// 
 /// let ss : secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
 /// let seq = "CGAACAAG".to_string();
 /// let title = "example".to_string();
-/// let ct_string_observed = secondary_structure_io::get_ct_string(&seq, &ss.paired, &title);
+/// let ct_string_observed = io::get_ct_string(&seq, &ss.paired, &title);
 /// 
 /// let ct_string_expected =
 /// ">example
@@ -47,7 +47,7 @@ pub fn get_ct_string(seq: &String, paired: &Vec<i64>, title: &String) -> String 
 /// # Examples
 ///
 /// ```
-/// use crate::rna_secondary_structure::secondary_structure_io;
+/// use crate::rna_secondary_structure::io;
 ///
 /// let ct_string =
 /// ">example
@@ -61,7 +61,7 @@ pub fn get_ct_string(seq: &String, paired: &Vec<i64>, title: &String) -> String 
 /// 8	G	7	9	1	8
 /// ";
 ///
-/// let ls = secondary_structure_io::parse_ct_string(&ct_string.to_string());
+/// let ls = io::parse_ct_string(&ct_string.to_string());
 /// let observed_ss = &ls[0];
 /// let seq = "CGAACAAG";
 /// let paired = vec![8, 5, 0, 0, 2, 0, 0, 1];

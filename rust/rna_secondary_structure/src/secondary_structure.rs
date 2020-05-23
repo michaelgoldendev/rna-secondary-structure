@@ -6,10 +6,10 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum SecondaryStructureParseError {
     #[error("No matching closing bracket.")]
-    MissingRightBracket,
+    MissingClosingBracket,
 
     #[error("No matching opening bracket.")]
-    MissingLeftBracket,
+    MissingOpeningBracket,
 }
 
 pub struct SecondaryStructureRecord {
@@ -53,7 +53,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
         } else if c == ')' {
             let j = stack.pop();
             match j {
-                None => return Err(SecondaryStructureParseError::MissingLeftBracket),
+                None => return Err(SecondaryStructureParseError::MissingOpeningBracket),
                 Some(j) => {
                     _paired[i] = j + 1;
                     _paired[j as usize] = (i as i64) + 1;
@@ -63,7 +63,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
     }
 
     if stack.len() > 0 {
-        return Err(SecondaryStructureParseError::MissingRightBracket);
+        return Err(SecondaryStructureParseError::MissingClosingBracket);
     }
 
     Ok(_paired)

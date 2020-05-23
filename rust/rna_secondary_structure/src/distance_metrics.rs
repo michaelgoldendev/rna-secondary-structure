@@ -1,7 +1,7 @@
 /// # Examples
 /// ```
 /// use crate::rna_secondary_structure::secondary_structure::from_dotbracketstring;
-/// use crate::rna_secondary_structure::secondary_structure_metrics::get_mountain_vector;
+/// use crate::rna_secondary_structure::distance_metrics::get_mountain_vector;
 /// let paired = from_dotbracketstring("(((...)))").unwrap();
 /// let mountain_obs = get_mountain_vector(&paired);
 /// let mountain_exp = vec![1.0, 2.0, 3.0, 3.0, 3.0, 3.0, 2.0, 1.0, 0.0];
