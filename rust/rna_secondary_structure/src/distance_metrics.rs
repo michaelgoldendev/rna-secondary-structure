@@ -1,3 +1,11 @@
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum SecondaryStructureMetricError {
+    #[error("Secondary structures must be the same length to be compared.")]
+    UnequalLength,
+}
+
 /// # Examples
 /// ```
 /// use crate::rna_secondary_structure::secondary_structure::from_dotbracketstring;
@@ -25,14 +33,18 @@ pub fn get_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
     mountain
 }
 
-pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> f64 {
+pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> Result<f64, SecondaryStructureMetricError> {
+    if paired1.len() != paired2.len() {
+        return Err(SecondaryStructureMetricError::UnequalLength);
+    }
+
     let m1 = get_mountain_vector(paired1);
     let m2 = get_mountain_vector(paired2);
     let mut d = 0.0;
     for (a, b) in m1.iter().zip(m2) {
         d += (a - b).abs().powf(p);
     }
-    d
+    Ok(d)
 }
 
 pub fn get_structure_star(len: i64) -> Vec<i64> {
@@ -50,6 +62,28 @@ pub fn get_structure_zero(len: i64) -> Vec<i64> {
     vec![0; len as usize]
 }
 
+/// Returns the maximal possible distance between two arbitary structures of a given length
 pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
-    get_mountain_distance(&get_structure_star(len), &get_structure_zero(len), p)
+    get_mountain_distance(&get_structure_star(len), &get_structure_zero(len), p).unwrap()
+}
+
+/// # Examples
+/// ```
+/// use crate::rna_secondary_structure::distance_metrics;
+///
+/// // structure with maximal number of base-pairings: ((((..))))
+/// let p1 = distance_metrics::get_structure_star(100);
+/// // structure with all nucleotides unpaired: .........
+/// let p2 = distance_metrics::get_structure_zero(100);
+///
+/// // structures p1 and p2 should be maximally distant
+/// let max_distance = distance_metrics::get_normalised_mountain_distance(&p1, &p2, 2.0).unwrap();
+/// assert_eq!(max_distance, 1.0);
+///
+/// // structures p1 is identical to itself and therefore distance should be zero
+/// let max_distance = distance_metrics::get_normalised_mountain_distance(&p1, &p1, 2.0).unwrap();
+/// assert_eq!(max_distance, 0.0);
+/// ```
+pub fn get_normalised_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> Result<f64, SecondaryStructureMetricError> {
+    Ok(get_mountain_distance(paired1,paired2,p)? / get_mountain_diameter(paired1.len() as i64, p))
 }

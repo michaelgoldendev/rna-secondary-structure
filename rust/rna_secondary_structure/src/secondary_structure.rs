@@ -43,7 +43,7 @@ impl SecondaryStructureRecord {
 }
 
 /// Returns a vector of paired sites from a dot bracket string representation.
-/// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructure.html#impl-FromStr).
+/// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructureRecord.html#impl-FromStr).
 pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructureParseError> {
     let mut _paired = vec![0; s.len()];
     let mut stack = Vec::<i64>::new();
@@ -75,7 +75,8 @@ impl fmt::Display for SecondaryStructureRecord {
     }
 }
 
-/// Returns a SecondaryStructure from a dot bracket string representation.
+/// Returns a SecondaryStructureRecord from a dot bracket string representation with a sequence of
+/// the same length consisting of all N's.
 /// 
 /// # Examples
 /// 
@@ -87,13 +88,8 @@ impl fmt::Display for SecondaryStructureRecord {
 /// ```
 impl str::FromStr for SecondaryStructureRecord {
     type Err = SecondaryStructureParseError;
-    // TODO: I don't think this error is ever raised because of panics.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = from_dotbracketstring(s);
-        if res.is_ok() {
-            return Ok(SecondaryStructureRecord::new(res.unwrap()));
-        }
-        Err(res.unwrap_err())
+        Ok(SecondaryStructureRecord::new(from_dotbracketstring(s)?))
     }
 }
 
