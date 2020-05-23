@@ -85,5 +85,43 @@ pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
 /// assert_eq!(max_distance, 0.0);
 /// ```
 pub fn get_normalised_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> Result<f64, SecondaryStructureMetricError> {
-    Ok(get_mountain_distance(paired1,paired2,p)? / get_mountain_diameter(paired1.len() as i64, p))
+    Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
+}
+
+// TODO: add documentation and unit test for weight mountain metric
+
+pub fn get_weighted_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
+    let mut mountain = vec![0.0; paired.len()];
+    for (i, j) in paired.iter().enumerate() {
+        if i > 0 {
+            mountain[i] = mountain[i - 1];
+        }
+
+        if *j != 0 {
+            mountain[i] += 1.0 / ((*j - (i as i64)) as f64);
+        }
+    }
+    mountain
+}
+
+pub fn get_weighted_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>) -> Result<f64, SecondaryStructureMetricError> {
+    if paired1.len() != paired2.len() {
+        return Err(SecondaryStructureMetricError::UnequalLength);
+    }
+
+    let m1 = get_weighted_mountain_vector(paired1);
+    let m2 = get_weighted_mountain_vector(paired2);
+    let mut d = 0.0;
+    for (a, b) in m1.iter().zip(m2) {
+        d += (a - b).abs();
+    }
+    Ok(d)
+}
+
+pub fn get_weighted_mountain_diameter(len: i64) -> f64 {
+    get_weighted_mountain_distance(&get_structure_star(len), &get_structure_zero(len)).unwrap()
+}
+
+pub fn get_normalised_weighted_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>) -> Result<f64, SecondaryStructureMetricError> {
+    Ok(get_weighted_mountain_distance(paired1, paired2)? / get_weighted_mountain_diameter(paired1.len() as i64))
 }
