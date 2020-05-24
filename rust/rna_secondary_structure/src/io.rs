@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::Path;
@@ -100,8 +101,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     ls
 }
 
-// TODO: errors should be propagated here.
-pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord, title: Option<&String>) -> () {
+pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord, title: Option<&String>) -> Result<(), Box<dyn Error>> {
     let append = false;
 
     let mut file = OpenOptions::new()
@@ -109,14 +109,15 @@ pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRe
         .create(true)
         .append(append)
         .truncate(!append)
-        .open(&path)
-        .map_err(|err| println!("{:?}", err)).unwrap();
+        .open(&path)?;
 
     if let Some(x) = title {
         let data = get_ct_string(&ss.sequence, &ss.paired, x);
-        file.write_all(data.as_bytes()).map_err(|err| println!("{:?}", err)).ok();
+        file.write_all(data.as_bytes())?;
     } else {
         let data = get_ct_string(&ss.sequence, &ss.paired, &format!("{}", &ss.sequence.len()));
-        file.write_all(data.as_bytes()).map_err(|err| println!("{:?}", err)).ok();
+        file.write_all(data.as_bytes())?;
     }
+
+    Ok(())
 }

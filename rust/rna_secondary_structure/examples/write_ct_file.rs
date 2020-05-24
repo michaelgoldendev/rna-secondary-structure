@@ -7,7 +7,7 @@ use rna_secondary_structure::io::*;
 
 fn main() {
     let ss: secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
-    write_ct_file(Path::new("example.ct"), &ss, None);
+    write_ct_file(Path::new("example.ct"), &ss, None).unwrap();
     let title = "title".to_string();
-    write_ct_file(Path::new("example_with_title.ct"), &ss, Some(&title));
+    write_ct_file(Path::new("example_with_title.ct"), &ss, Some(&title)).unwrap();
 }

@@ -1,3 +1,8 @@
+//! A module for calculating distances between secondary structures.
+//!
+//! Implements the 'Mountain Metric' as defined in:
+//! `Moulton, Vincent, et al. "Metrics on RNA secondary structures." Journal of Computational Biology 7.1-2 (2000): 277-292.`
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -6,10 +11,12 @@ pub enum SecondaryStructureMetricError {
     UnequalLength,
 }
 
+/// Returns a mountain vector from a vector representing a list of paired sites.
+///
 /// # Examples
 /// ```rust
-/// use crate::rna_secondary_structure::secondary_structure::from_dotbracketstring;
-/// use crate::rna_secondary_structure::distance_metrics::get_mountain_vector;
+/// use rna_secondary_structure::secondary_structure::from_dotbracketstring;
+/// use rna_secondary_structure::distance_metrics::get_mountain_vector;
 /// let paired = from_dotbracketstring("(((...)))").unwrap();
 /// let mountain_obs = get_mountain_vector(&paired);
 /// let mountain_exp = vec![1.0, 2.0, 3.0, 3.0, 3.0, 3.0, 2.0, 1.0, 0.0];
@@ -47,6 +54,17 @@ pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> 
     Ok(d)
 }
 
+/// Returns the unique secondary structure configuration of the specified length that has the
+/// maximal number of base-pairings.
+///
+/// # Examples
+/// ```rust
+/// use rna_secondary_structure::distance_metrics::get_structure_star;
+/// use rna_secondary_structure::secondary_structure::from_dotbracketstring;
+/// let structure_star = get_structure_star(10);
+/// let paired_expected = from_dotbracketstring("((((..))))").unwrap();
+/// assert_eq!(structure_star, paired_expected);
+/// ```
 pub fn get_structure_star(len: i64) -> Vec<i64> {
     let mut paired = vec![0; len as usize];
     let upper = len / 2 - ((len + 1) % 2);
@@ -58,11 +76,23 @@ pub fn get_structure_star(len: i64) -> Vec<i64> {
     paired
 }
 
+/// Returns the unique secondary structure configuration of the specified length that has all
+/// nucleotides unpaired.
+///
+/// # Examples
+/// ```rust
+/// use rna_secondary_structure::distance_metrics::get_structure_zero;
+/// use rna_secondary_structure::secondary_structure::from_dotbracketstring;
+/// let structure0 = get_structure_zero(10);
+/// let paired_expected = from_dotbracketstring("..........").unwrap();
+/// assert_eq!(structure0, paired_expected);
+/// ```
 pub fn get_structure_zero(len: i64) -> Vec<i64> {
     vec![0; len as usize]
 }
 
-/// Returns the maximal possible distance between two arbitary structures of a given length
+/// Returns the maximal possible mountain distance between any two secondary structures of a given
+/// length (this is just the distance between structure_star and structure_zero).
 pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
     get_mountain_distance(&get_structure_star(len), &get_structure_zero(len), p).unwrap()
 }
@@ -87,8 +117,6 @@ pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
 pub fn get_normalised_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> Result<f64, SecondaryStructureMetricError> {
     Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
 }
-
-// TODO: add documentation and unit test for weight mountain metric
 
 pub fn get_weighted_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
     let mut mountain = vec![0.0; paired.len()];
