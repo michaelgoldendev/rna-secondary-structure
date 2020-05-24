@@ -7,7 +7,7 @@ use rna_secondary_structure::*;
 
 fn main() {
     let p1 = distance_metrics::get_structure_star(100);
-    let p2 = distance_metrics::get_structure_zero(120);
+    let p2 = distance_metrics::get_structure_zero(100);
     let dist3 = distance_metrics::get_normalised_mountain_distance(&p1, &p2, 1.0).unwrap();
     let dist1 = distance_metrics::get_mountain_distance(&p1, &p2, 1.0).unwrap();
     let dist2 = distance_metrics::get_mountain_diameter(100, 1.0);
@@ -26,7 +26,7 @@ fn main() {
     let ls = io::parse_ct_string(&ct_string_expected.parse().unwrap());
     println!("[{}]", ls.iter().fold(String::new(), |acc, num| acc + &num.to_string() + ", "));
 
-    let mut ss = secondary_structure::SecondaryStructureRecord::from_str("()").unwrap();
+    let mut ss = secondary_structure::SecondaryStructureRecord::from_str("(").unwrap();
     ss.sequence = "AAAA".to_string();
     println!("{}", ss);
 

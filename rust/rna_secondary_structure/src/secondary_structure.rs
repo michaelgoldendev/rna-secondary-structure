@@ -5,11 +5,15 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SecondaryStructureParseError {
-    #[error("No matching closing bracket.")]
-    MissingClosingBracket,
+    #[error("Missing closing parentheses '{expected}'")]
+    MissingClosingParentheses {
+        expected: String,
+    },
 
-    #[error("No matching opening bracket.")]
-    MissingOpeningBracket,
+    #[error("Missing opening parentheses '{expected}'")]
+    MissingOpeningParentheses {
+        expected: String,
+    },
 }
 
 pub struct SecondaryStructureRecord {
@@ -61,7 +65,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
         } else if c == ')' {
             let j = stack.pop();
             match j {
-                None => return Err(SecondaryStructureParseError::MissingOpeningBracket),
+                None => return Err(SecondaryStructureParseError::MissingClosingParentheses {expected : ")".to_string() }),
                 Some(j) => {
                     _paired[i] = j + 1;
                     _paired[j as usize] = (i as i64) + 1;
@@ -71,7 +75,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
     }
 
     if stack.len() > 0 {
-        return Err(SecondaryStructureParseError::MissingClosingBracket);
+        return Err(SecondaryStructureParseError::MissingOpeningParentheses {expected : "(".to_string() })
     }
 
     Ok(_paired)
