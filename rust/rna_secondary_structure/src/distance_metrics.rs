@@ -6,6 +6,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(missing_docs)]
 pub enum SecondaryStructureMetricError {
     #[error("Secondary structures must be the same length.")]
     UnequalLength,
@@ -40,7 +41,11 @@ pub fn get_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
     mountain
 }
 
-pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> Result<f64, SecondaryStructureMetricError> {
+/// Returns the mountain distance between two secondary structure configurations.
+pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p : Option<f64>) -> Result<f64, SecondaryStructureMetricError> {
+    // defaults
+    let p = p.unwrap_or(1.0);
+
     if paired1.len() != paired2.len() {
         return Err(SecondaryStructureMetricError::UnequalLength);
     }
@@ -92,11 +97,17 @@ pub fn get_structure_zero(len: i64) -> Vec<i64> {
 }
 
 /// Returns the maximal possible mountain distance between any two secondary structures of a given
-/// length (this is just the distance between structure_star and structure_zero).
-pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
+/// length (this is the distance between [structure_star](fn.get_structure_star.html) and [structure_zero](fn.get_structure_zero.html)).
+pub fn get_mountain_diameter(len: i64, p: Option<f64>) -> f64 {
     get_mountain_distance(&get_structure_star(len), &get_structure_zero(len), p).unwrap()
 }
 
+/// Returns the normalised mountain distance, d, between two secondary structure configurations, such
+/// that 0.0 <= d <= 1.0.
+///
+/// If d equals 0.0 then the two structures are identical.
+/// If d equals 1.0 the two structures are maximally distant, see  [get_mountain_diameter](fn.get_mountain_diameter.html).
+///
 /// # Examples
 /// ```rust
 /// use crate::rna_secondary_structure::distance_metrics;
@@ -107,17 +118,19 @@ pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
 /// let p2 = distance_metrics::get_structure_zero(100);
 ///
 /// // structures p1 and p2 should be maximally distant
-/// let max_distance = distance_metrics::get_normalised_mountain_distance(&p1, &p2, 2.0).unwrap();
+/// let max_distance = distance_metrics::get_normalised_mountain_distance(&p1, &p2, Some(2.0)).unwrap();
 /// assert_eq!(max_distance, 1.0);
 ///
 /// // structures p1 is identical to itself and therefore distance should be zero
-/// let max_distance = distance_metrics::get_normalised_mountain_distance(&p1, &p1, 2.0).unwrap();
+/// let max_distance = distance_metrics::get_normalised_mountain_distance(&p1, &p1, Some(2.0)).unwrap();
 /// assert_eq!(max_distance, 0.0);
 /// ```
-pub fn get_normalised_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: f64) -> Result<f64, SecondaryStructureMetricError> {
-    Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
+pub fn get_normalised_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: Option<f64>) -> Result<f64, SecondaryStructureMetricError> {
+     Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
 }
 
+/// Returns a weighted mountain vector, where at base-paired positions the step up or down in
+/// mountain height is inversely proportional to the number of nucleotides seperating the base-pairs.
 pub fn get_weighted_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
     let mut mountain = vec![0.0; paired.len()];
     for (i, j) in paired.iter().enumerate() {
@@ -132,6 +145,7 @@ pub fn get_weighted_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
     mountain
 }
 
+/// Returns a weighted version of the mountain distance.
 pub fn get_weighted_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>) -> Result<f64, SecondaryStructureMetricError> {
     if paired1.len() != paired2.len() {
         return Err(SecondaryStructureMetricError::UnequalLength);
@@ -146,10 +160,12 @@ pub fn get_weighted_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>) ->
     Ok(d)
 }
 
+/// Returns a weighted version of the mountain diameter.
 pub fn get_weighted_mountain_diameter(len: i64) -> f64 {
     get_weighted_mountain_distance(&get_structure_star(len), &get_structure_zero(len)).unwrap()
 }
 
+/// Returns a weighted version of the normalised mountain distance.
 pub fn get_normalised_weighted_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>) -> Result<f64, SecondaryStructureMetricError> {
     Ok(get_weighted_mountain_distance(paired1, paired2)? / get_weighted_mountain_diameter(paired1.len() as i64))
 }

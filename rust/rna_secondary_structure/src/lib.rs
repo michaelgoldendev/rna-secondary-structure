@@ -1,3 +1,5 @@
+//! A crate for analysing RNA (and DNA) secondary structures in Rust.
+
 #![warn(missing_docs)]
 
 pub mod secondary_structure;

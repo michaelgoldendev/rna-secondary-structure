@@ -1,9 +1,12 @@
+//! A module for representing secondary structures.
+
 use std::fmt;
 use std::str;
 
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(missing_docs)]
 pub enum SecondaryStructureParseError {
     #[error("Missing closing parentheses '{expected}'")]
     MissingClosingParentheses {
@@ -16,12 +19,19 @@ pub enum SecondaryStructureParseError {
     },
 }
 
+/// A struct represent a secondary structure and it's corresponding nucleotide sequence.
 pub struct SecondaryStructureRecord {
+    /// A String representing the secondary structures nucleotide sequence.
     pub sequence: String,
+
+    /// A vector of paired sites
     pub paired: Vec<i64>,
 }
 
 impl SecondaryStructureRecord {
+
+    /// Constructs a SecondaryStructureRecord from a list of paired sites representing the secondary
+    /// structure configuration. With a default sequence of the same length consisting of all N's.
     pub fn new(paired: Vec<i64>) -> SecondaryStructureRecord {
         SecondaryStructureRecord {
             sequence: "N".repeat(paired.len()),
@@ -29,10 +39,12 @@ impl SecondaryStructureRecord {
         }
     }
 
+    /// Set the nucleotide sequence
     pub fn set_sequence(&mut self, sequence: String) -> () {
         self.sequence = sequence;
     }
 
+    /// Set the secondary structure configuration
     pub fn set_paired(&mut self, paired: Vec<i64>) -> () {
         self.paired = paired;
     }

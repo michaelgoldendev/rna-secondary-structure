@@ -1,3 +1,5 @@
+//! A module for parsing, reading, and writing various secondary structure formats.
+
 use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -101,6 +103,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     ls
 }
 
+/// Writes a single SecondaryStructureRecord to the specified path in connect (CT) format.
 pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord, title: Option<&String>) -> Result<(), Box<dyn Error>> {
     let append = false;
 
