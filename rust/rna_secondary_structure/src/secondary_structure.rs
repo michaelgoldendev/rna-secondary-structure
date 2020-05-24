@@ -25,8 +25,16 @@ impl SecondaryStructureRecord {
         }
     }
 
-    /// Returns a dot bracket string representation of the secondary structure
-    pub fn dotbracketstring(&self) -> String {
+    pub fn set_sequence(&mut self, sequence: String) -> () {
+        self.sequence = sequence;
+    }
+
+    pub fn set_paired(&mut self, paired: Vec<i64>) -> () {
+        self.paired = paired;
+    }
+
+    /// Returns a dot bracket string representation of the secondary structure configuration.
+    pub fn get_dotbracketstring(&self) -> String {
         // TODO: add mixed bracket types for ambiguous/pseudoknotted structures.
         let mut dbs = String::with_capacity(self.paired.len());
         for (i, j) in self.paired.iter().enumerate() {
@@ -71,7 +79,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
 
 impl fmt::Display for SecondaryStructureRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}\n{}", self.sequence, self.dotbracketstring())
+        write!(f, "{}\n{}", self.sequence, self.get_dotbracketstring())
     }
 }
 
