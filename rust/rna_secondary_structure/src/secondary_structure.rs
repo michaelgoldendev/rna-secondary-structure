@@ -80,7 +80,7 @@ impl fmt::Display for SecondaryStructureRecord {
 /// 
 /// # Examples
 /// 
-/// ```
+/// ```rust
 /// use crate::rna_secondary_structure::secondary_structure::SecondaryStructureRecord;
 /// let paired = vec![10, 7, 6, 0, 0, 3, 2, 0, 0, 1, 0, 0];
 /// let ss : SecondaryStructureRecord = "(((..))..)..".parse().unwrap();
@@ -92,7 +92,3 @@ impl str::FromStr for SecondaryStructureRecord {
         Ok(SecondaryStructureRecord::new(from_dotbracketstring(s)?))
     }
 }
-
-#[cfg(test)]
-#[path = "./secondary_structure_test.rs"]
-mod secondary_structure_test;

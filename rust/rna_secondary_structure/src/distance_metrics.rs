@@ -2,12 +2,12 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SecondaryStructureMetricError {
-    #[error("Secondary structures must be the same length to be compared.")]
+    #[error("Secondary structures must be the same length.")]
     UnequalLength,
 }
 
 /// # Examples
-/// ```
+/// ```rust
 /// use crate::rna_secondary_structure::secondary_structure::from_dotbracketstring;
 /// use crate::rna_secondary_structure::distance_metrics::get_mountain_vector;
 /// let paired = from_dotbracketstring("(((...)))").unwrap();
@@ -68,7 +68,7 @@ pub fn get_mountain_diameter(len: i64, p: f64) -> f64 {
 }
 
 /// # Examples
-/// ```
+/// ```rust
 /// use crate::rna_secondary_structure::distance_metrics;
 ///
 /// // structure with maximal number of base-pairings: ((((..))))

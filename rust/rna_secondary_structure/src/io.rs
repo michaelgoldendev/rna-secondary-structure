@@ -5,11 +5,13 @@ use std::path::Path;
 use crate::secondary_structure;
 use crate::secondary_structure::SecondaryStructureRecord;
 
-/// Get a connect (CT) format string representation of a sequence and SecondaryStructure.
+// TODO: get_ct_string expects user to supply a paired sites array and sequence, should be a SecondaryStructureRecord?
+
+/// Get a connect (CT) format string representation of a secondary structure and sequence.
 /// 
 /// # Examples
 /// 
-/// ```
+/// ```rust
 /// use crate::rna_secondary_structure::secondary_structure;
 /// use crate::rna_secondary_structure::io;
 /// 
@@ -42,11 +44,11 @@ pub fn get_ct_string(seq: &String, paired: &Vec<i64>, title: &String) -> String 
     data
 }
 
-/// Reads a connect (CT) format string and returns a vector of Secondary Structures
+/// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecord
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust
 /// use crate::rna_secondary_structure::io;
 ///
 /// let ct_string =
@@ -98,6 +100,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     ls
 }
 
+// TODO: errors should be propagated here.
 pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord, title: Option<&String>) -> () {
     let append = false;
 
