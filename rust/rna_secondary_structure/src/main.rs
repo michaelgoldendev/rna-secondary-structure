@@ -37,6 +37,6 @@ fn main() {
     // println!("{}", ss);
 
     let ss: secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
-    io::write_ct_file(Path::new("test.ct"), &ss, None).unwrap();
+    io::write_ct_file(Path::new("test.ct"), &ss).unwrap();
     println!("{}", ss);
 }

@@ -18,10 +18,10 @@ use crate::secondary_structure::SecondaryStructureRecord;
 /// use crate::rna_secondary_structure::secondary_structure;
 /// use crate::rna_secondary_structure::io;
 /// 
-/// let ss : secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
-/// let seq = "CGAACAAG".to_string();
-/// let title = "example".to_string();
-/// let ct_string_observed = io::get_ct_string(&seq, &ss.paired, &title);
+/// let mut ss : secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
+/// ss.set_sequence("CGAACAAG".to_string());
+/// ss.name = "example".to_string();
+/// let ct_string_observed = io::get_ct_string(&ss);
 /// 
 /// let ct_string_expected =
 /// ">example
@@ -37,10 +37,10 @@ use crate::secondary_structure::SecondaryStructureRecord;
 ///
 /// assert_eq!(ct_string_observed, ct_string_expected);
 /// ```
-pub fn get_ct_string(seq: &String, paired: &Vec<i64>, title: &String) -> String {
-    let it = seq.chars().zip(paired.iter());
+pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
+    let it = ss.sequence.chars().zip(ss.paired.iter());
 
-    let mut data = format!(">{}\n", title);
+    let mut data = format!(">{}\n", ss.name);
     for (i, (c, j)) in it.enumerate() {
         data.push_str(&format!("{}\t{}\t{}\t{}\t{}\t{}\n", i + 1, c, i, i + 2, j, i + 1));
     }
@@ -70,6 +70,7 @@ pub fn get_ct_string(seq: &String, paired: &Vec<i64>, title: &String) -> String 
 /// let observed_ss = &ls[0];
 /// let seq = "CGAACAAG";
 /// let paired = vec![8, 5, 0, 0, 2, 0, 0, 1];
+/// assert_eq!(observed_ss.name, "example");
 /// assert_eq!(observed_ss.sequence, seq);
 /// assert_eq!(observed_ss.paired, paired);
 /// ```
@@ -77,17 +78,20 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     let mut ls: Vec<SecondaryStructureRecord> = Vec::new();
     let mut sequence = "".to_string();
     let mut paired = Vec::new();
+    let mut name = "".to_string();
     for line in ct_string.lines() {
         let spl = line.trim().split_whitespace().collect::<Vec<&str>>();
         if spl.len() > 0 && spl[0].starts_with(">") {
             if paired.len() > 0 {
                 ls.push(SecondaryStructureRecord {
+                    name: name.clone(),
                     sequence: sequence.to_string(),
                     paired: paired.clone(),
                 });
                 sequence = "".to_string();
                 paired.clear();
             }
+            name = line[1..].to_string();
         } else if spl.len() >= 6 && spl[0].parse::<i64>().is_ok() && spl[5].parse::<i64>().is_ok() {
             sequence.push_str(spl[1]);
             paired.push(spl[4].parse::<i64>().unwrap());
@@ -95,6 +99,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     }
     if paired.len() > 0 {
         ls.push(SecondaryStructureRecord {
+            name: name.clone(),
             sequence: sequence.to_string(),
             paired: paired.clone(),
         });
@@ -104,7 +109,7 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
 }
 
 /// Writes a single SecondaryStructureRecord to the specified path in connect (CT) format.
-pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord, title: Option<&String>) -> Result<(), Box<dyn Error>> {
+pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     let append = false;
 
     let mut file = OpenOptions::new()
@@ -114,13 +119,6 @@ pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRe
         .truncate(!append)
         .open(&path)?;
 
-    if let Some(x) = title {
-        let data = get_ct_string(&ss.sequence, &ss.paired, x);
-        file.write_all(data.as_bytes())?;
-    } else {
-        let data = get_ct_string(&ss.sequence, &ss.paired, &format!("{}", &ss.sequence.len()));
-        file.write_all(data.as_bytes())?;
-    }
-
+    file.write_all(get_ct_string(ss).as_bytes())?;
     Ok(())
 }

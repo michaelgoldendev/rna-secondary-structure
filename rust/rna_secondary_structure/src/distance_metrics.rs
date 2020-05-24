@@ -42,7 +42,7 @@ pub fn get_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
 }
 
 /// Returns the mountain distance between two secondary structure configurations.
-pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p : Option<f64>) -> Result<f64, SecondaryStructureMetricError> {
+pub fn get_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: Option<f64>) -> Result<f64, SecondaryStructureMetricError> {
     // defaults
     let p = p.unwrap_or(1.0);
 
@@ -126,7 +126,7 @@ pub fn get_mountain_diameter(len: i64, p: Option<f64>) -> f64 {
 /// assert_eq!(max_distance, 0.0);
 /// ```
 pub fn get_normalised_mountain_distance(paired1: &Vec<i64>, paired2: &Vec<i64>, p: Option<f64>) -> Result<f64, SecondaryStructureMetricError> {
-     Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
+    Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
 }
 
 /// Returns a weighted mountain vector, where at base-paired positions the step up or down in

@@ -21,19 +21,22 @@ pub enum SecondaryStructureParseError {
 
 /// A struct represent a secondary structure and it's corresponding nucleotide sequence.
 pub struct SecondaryStructureRecord {
+    /// A name for this record.
+    pub name: String,
+
     /// A String representing the secondary structures nucleotide sequence.
     pub sequence: String,
 
-    /// A vector of paired sites
+    /// A vector of paired sites.
     pub paired: Vec<i64>,
 }
 
 impl SecondaryStructureRecord {
-
     /// Constructs a SecondaryStructureRecord from a list of paired sites representing the secondary
     /// structure configuration. With a default sequence of the same length consisting of all N's.
     pub fn new(paired: Vec<i64>) -> SecondaryStructureRecord {
         SecondaryStructureRecord {
+            name: "".to_string(),
             sequence: "N".repeat(paired.len()),
             paired,
         }
@@ -77,7 +80,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
         } else if c == ')' {
             let j = stack.pop();
             match j {
-                None => return Err(SecondaryStructureParseError::MissingClosingParentheses {expected : ")".to_string() }),
+                None => return Err(SecondaryStructureParseError::MissingClosingParentheses { expected: ")".to_string() }),
                 Some(j) => {
                     _paired[i] = j + 1;
                     _paired[j as usize] = (i as i64) + 1;
@@ -87,7 +90,7 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
     }
 
     if stack.len() > 0 {
-        return Err(SecondaryStructureParseError::MissingOpeningParentheses {expected : "(".to_string() })
+        return Err(SecondaryStructureParseError::MissingOpeningParentheses { expected: "(".to_string() });
     }
 
     Ok(_paired)
