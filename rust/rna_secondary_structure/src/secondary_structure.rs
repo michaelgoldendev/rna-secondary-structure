@@ -8,14 +8,16 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum SecondaryStructureParseError {
-    #[error("Missing closing parentheses '{expected}'")]
-    MissingClosingParentheses {
-        expected: String,
+    #[error("Missing left parentheses '{left}' for '{right}'")]
+    MissingLeftParentheses {
+        left: String,
+        right: String,
     },
 
-    #[error("Missing opening parentheses '{expected}'")]
-    MissingOpeningParentheses {
-        expected: String,
+    #[error("Missing right parentheses '{right}' for '{left}'")]
+    MissingRightParentheses {
+        left: String,
+        right: String,
     },
 }
 
@@ -80,7 +82,11 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
         } else if c == ')' {
             let j = stack.pop();
             match j {
-                None => return Err(SecondaryStructureParseError::MissingClosingParentheses { expected: ")".to_string() }),
+                None => return Err(
+                    SecondaryStructureParseError::MissingLeftParentheses {
+                        left: "(".to_string(),
+                        right: ")".to_string()
+                    }),
                 Some(j) => {
                     _paired[i] = j + 1;
                     _paired[j as usize] = (i as i64) + 1;
@@ -90,7 +96,10 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
     }
 
     if stack.len() > 0 {
-        return Err(SecondaryStructureParseError::MissingOpeningParentheses { expected: "(".to_string() });
+        return Err(SecondaryStructureParseError::MissingRightParentheses {
+            left: "(".to_string(),
+            right: ")".to_string()
+        });
     }
 
     Ok(_paired)

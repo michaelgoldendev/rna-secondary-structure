@@ -26,7 +26,8 @@ fn main() {
     let ls = io::parse_ct_string(&ct_string_expected.parse().unwrap());
     println!("[{}]", ls.iter().fold(String::new(), |acc, num| acc + &num.to_string() + ", "));
 
-    let mut ss = secondary_structure::SecondaryStructureRecord::from_str("(").unwrap();
+    let mut ss = secondary_structure::SecondaryStructureRecord::from_str("(").unwrap_or_else(|err| {
+        panic!("{}", err)});
     ss.sequence = "AAAA".to_string();
     println!("{}", ss);
 
