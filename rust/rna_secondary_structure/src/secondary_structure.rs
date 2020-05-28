@@ -8,17 +8,57 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
 pub enum SecondaryStructureParseError {
-    #[error("Missing left parentheses '{left}' for '{right}'")]
+    #[error("Missing left parentheses '{left}' for '{right}' at position {pos}")]
     MissingLeftParentheses {
-        left: String,
-        right: String,
+        left: char,
+        right: char,
+        pos: usize
     },
 
-    #[error("Missing right parentheses '{right}' for '{left}'")]
+    #[error("Missing right parentheses '{right}' for '{left}' at position {pos}")]
     MissingRightParentheses {
-        left: String,
-        right: String,
+        left: char,
+        right: char,
+        pos: usize
     },
+
+    #[error("Bracket type not recognised: '{c}'")]
+    BracketTypeNotRecognised {
+        c: char
+    },
+}
+
+const LEFT_BRACES: &str = "(<{[abcdefghijklmnopqrstuvwxyz";
+const RIGHT_BRACES: &str = ")>}]ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+fn is_left_bracket(brace : char) -> bool {
+    LEFT_BRACES.contains(brace)
+}
+
+fn is_right_bracket(brace : char) -> bool {
+    RIGHT_BRACES.contains(brace)
+}
+
+/// ```rust
+/// #[test]
+/// assert_eq!(self::get_matching_bracket('<').unwrap(), '>');
+/// #[test]
+/// assert_eq!(self::get_matching_bracket('Z').unwrap(), 'z');
+/// ```
+pub fn get_matching_bracket(brace : char) -> Result<char, SecondaryStructureParseError> {
+    let left_pos = LEFT_BRACES.find(brace).unwrap_or(1000);
+    if left_pos != 1000 {
+        return Ok(RIGHT_BRACES.chars().nth(left_pos).unwrap())
+    }
+
+    let right_pos =  RIGHT_BRACES.find(brace).unwrap_or(1000);
+    if right_pos != 1000 {
+        return Ok(LEFT_BRACES.chars().nth(right_pos).unwrap())
+    }
+
+    return Err(SecondaryStructureParseError::BracketTypeNotRecognised {
+            c: brace
+        })
 }
 
 /// A struct represent a secondary structure and it's corresponding nucleotide sequence.
@@ -77,28 +117,34 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
     let mut _paired = vec![0; s.len()];
     let mut stack = Vec::<i64>::new();
     for (i, c) in s.chars().enumerate() {
-        if c == '(' {
+        if is_left_bracket(c) {
             stack.push(i as i64);
-        } else if c == ')' {
-            let j = stack.pop();
-            match j {
+        } else if is_right_bracket(c) {
+            match stack.last() {
                 None => return Err(
                     SecondaryStructureParseError::MissingLeftParentheses {
-                        left: "(".to_string(),
-                        right: ")".to_string()
+                        left: get_matching_bracket(c)?,
+                        right: c,
+                        pos: i+1
                     }),
                 Some(j) => {
-                    _paired[i] = j + 1;
-                    _paired[j as usize] = (i as i64) + 1;
+                    if get_matching_bracket(c)? == s.chars().nth(*j as usize ).unwrap()  {
+                        _paired[i] = j + 1;
+                        _paired[*j as usize] = (i as i64) + 1;
+                        stack.pop();
+                    }
                 }
             }
         }
     }
 
     if stack.len() > 0 {
+        let j = stack.pop().unwrap()  as usize;
+        let c = s.chars().nth(j).unwrap();
         return Err(SecondaryStructureParseError::MissingRightParentheses {
-            left: "(".to_string(),
-            right: ")".to_string()
+            left: c,
+            right: get_matching_bracket(c)?,
+            pos: j+1
         });
     }
 
