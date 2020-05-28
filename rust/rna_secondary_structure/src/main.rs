@@ -4,8 +4,11 @@ use std::path::Path;
 use std::str::FromStr;
 
 use rna_secondary_structure::*;
+use rna_secondary_structure::io;
 
 fn main() {
+    let paired = vec![8, 5, 6, 0, 2, 3, 0, 1];
+    println!("{}", io::get_dbn_string(paired));
     let p1 = distance_metrics::get_structure_star(100);
     let p2 = distance_metrics::get_structure_zero(100);
     let dist3 = distance_metrics::get_normalised_mountain_distance(&p1, &p2, None).unwrap();

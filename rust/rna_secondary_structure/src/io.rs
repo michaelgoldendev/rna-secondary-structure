@@ -6,7 +6,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::SecondaryStructureRecord;
+use crate::secondary_structure::{get_matching_bracket, SecondaryStructureRecord};
 
 // TODO: get_ct_string expects user to supply a paired sites array and sequence, should be a SecondaryStructureRecord?
 
@@ -106,6 +106,25 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
         paired.clear();
     }
     ls
+}
+
+/// Unsafe, does not work with pseudoknotted structures
+pub fn get_dbn_string(paired: Vec<i64>) -> String {
+    let mut dbn = "".to_string();
+    for (i, j) in paired.iter().enumerate() {
+        let i = i as i64;
+        let j = *j;
+        if j == 0 {
+            dbn += ".";
+        } else if i < j {
+            dbn += "(";
+        } else {
+            println!("{} {}", &dbn, j - 1);
+            let left = get_matching_bracket(dbn.chars().nth((j - 1) as usize).unwrap()).unwrap().to_string();
+            dbn.push_str(&left);
+        }
+    }
+    dbn.to_string()
 }
 
 /// Writes a single SecondaryStructureRecord to the specified path in connect (CT) format.
