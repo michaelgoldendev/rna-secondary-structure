@@ -12,31 +12,36 @@ pub enum SecondaryStructureParseError {
     MissingLeftParentheses {
         left: char,
         right: char,
-        pos: usize
+        pos: usize,
     },
 
     #[error("Missing right parentheses '{right}' for '{left}' at position {pos}")]
     MissingRightParentheses {
         left: char,
         right: char,
-        pos: usize
+        pos: usize,
     },
 
     #[error("Bracket type not recognised: '{c}'")]
     BracketTypeNotRecognised {
         c: char
     },
+
+    #[error("Insufficient bracket types are available for parsing structure unambigously.")]
+    InsufficientBracketTypes,
 }
 
-const LEFT_BRACES: &str = "(<{[abcdefghijklmnopqrstuvwxyz";
-const RIGHT_BRACES: &str = ")>}]ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+/// A string of characters representing possible left bracket types
+pub const LEFT_BRACKETS: &str = "(<{[abcdefghijklmnopqrstuvwxyz";
+/// A string of characters representing corresponding right bracket types
+pub const RIGHT_BRACKETS: &str = ")>}]ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-fn is_left_bracket(brace : char) -> bool {
-    LEFT_BRACES.contains(brace)
+fn is_left_bracket(brace: char) -> bool {
+    LEFT_BRACKETS.contains(brace)
 }
 
-fn is_right_bracket(brace : char) -> bool {
-    RIGHT_BRACES.contains(brace)
+fn is_right_bracket(brace: char) -> bool {
+    RIGHT_BRACKETS.contains(brace)
 }
 
 /// ```rust
@@ -45,20 +50,20 @@ fn is_right_bracket(brace : char) -> bool {
 /// #[test]
 /// assert_eq!(self::get_matching_bracket('Z').unwrap(), 'z');
 /// ```
-pub fn get_matching_bracket(brace : char) -> Result<char, SecondaryStructureParseError> {
-    let left_pos = LEFT_BRACES.find(brace).unwrap_or(1000);
+pub fn get_matching_bracket(brace: char) -> Result<char, SecondaryStructureParseError> {
+    let left_pos = LEFT_BRACKETS.find(brace).unwrap_or(1000);
     if left_pos != 1000 {
-        return Ok(RIGHT_BRACES.chars().nth(left_pos).unwrap())
+        return Ok(RIGHT_BRACKETS.chars().nth(left_pos).unwrap());
     }
 
-    let right_pos =  RIGHT_BRACES.find(brace).unwrap_or(1000);
+    let right_pos = RIGHT_BRACKETS.find(brace).unwrap_or(1000);
     if right_pos != 1000 {
-        return Ok(LEFT_BRACES.chars().nth(right_pos).unwrap())
+        return Ok(LEFT_BRACKETS.chars().nth(right_pos).unwrap());
     }
 
     return Err(SecondaryStructureParseError::BracketTypeNotRecognised {
-            c: brace
-        })
+        c: brace
+    });
 }
 
 /// A struct represent a secondary structure and it's corresponding nucleotide sequence.
@@ -125,10 +130,10 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
                     SecondaryStructureParseError::MissingLeftParentheses {
                         left: get_matching_bracket(c)?,
                         right: c,
-                        pos: i+1
+                        pos: i + 1,
                     }),
                 Some(j) => {
-                    if get_matching_bracket(c)? == s.chars().nth(*j as usize ).unwrap()  {
+                    if get_matching_bracket(c)? == s.chars().nth(*j as usize).unwrap() {
                         _paired[i] = j + 1;
                         _paired[*j as usize] = (i as i64) + 1;
                         stack.pop();
@@ -139,12 +144,12 @@ pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructurePa
     }
 
     if stack.len() > 0 {
-        let j = stack.pop().unwrap()  as usize;
+        let j = stack.pop().unwrap() as usize;
         let c = s.chars().nth(j).unwrap();
         return Err(SecondaryStructureParseError::MissingRightParentheses {
             left: c,
             right: get_matching_bracket(c)?,
-            pos: j+1
+            pos: j + 1,
         });
     }
 

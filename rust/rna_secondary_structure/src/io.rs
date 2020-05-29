@@ -6,12 +6,13 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::{get_matching_bracket, SecondaryStructureRecord};
+use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, SecondaryStructureParseError, SecondaryStructureRecord};
 
 // TODO: get_ct_string expects user to supply a paired sites array and sequence, should be a SecondaryStructureRecord?
 
 /// Get a connect (CT) format string representation of a secondary structure and sequence.
-/// 
+/// The CT format can represent arbitarily pseudoknotted secondary structures.
+///
 /// # Examples
 /// 
 /// ```rust
@@ -108,8 +109,24 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     ls
 }
 
-/// Unsafe, does not work with pseudoknotted structures
-pub fn get_dbn_string(paired: Vec<i64>) -> String {
+/// Converts a paired sites vector representing an arbitarily pseudoknotted secondary structure into
+/// a dot bracket string representation.
+///
+/// # Examples
+///
+/// ```rust
+/// use crate::rna_secondary_structure::io;
+///
+/// let paired = vec![5, 7, 6, 9, 1, 3, 2, 10, 4, 8, 0, 0];
+///
+/// let dbs_observed = io::get_dbn_string(&paired).unwrap();
+/// let dbs_expected = "(<<{)>>(})..";
+/// assert_eq!(dbs_observed, dbs_expected);
+/// ```
+pub fn get_dbn_string(paired: &Vec<i64>) -> Result<String, SecondaryStructureParseError> {
+    let mut stacks: Vec<Vec<i64>> = Vec::new();
+    stacks.push(Vec::new());
+
     let mut dbn = "".to_string();
     for (i, j) in paired.iter().enumerate() {
         let i = i as i64;
@@ -117,14 +134,32 @@ pub fn get_dbn_string(paired: Vec<i64>) -> String {
         if j == 0 {
             dbn += ".";
         } else if i < j {
-            dbn += "(";
+            let mut success = false;
+            for (index, left) in LEFT_BRACKETS.chars().enumerate() {
+                if index >= stacks.len() {
+                    stacks.push(Vec::new()); // add an new stack for an additional bracket type
+                }
+                let stack = stacks.get(index).unwrap();
+                if stack.len() == 0 || j < *stack.last().unwrap() {
+                    stacks.get_mut(index).unwrap().push(j);
+                    dbn += &left.to_string();
+                    success = true;
+                    break;
+                }
+            }
+            if !success {
+                return Err(SecondaryStructureParseError::InsufficientBracketTypes);
+            }
         } else {
-            println!("{} {}", &dbn, j - 1);
-            let left = get_matching_bracket(dbn.chars().nth((j - 1) as usize).unwrap()).unwrap().to_string();
-            dbn.push_str(&left);
+            let left = dbn.chars().nth((j - 1) as usize).unwrap();
+            let index = LEFT_BRACKETS.find(left).unwrap();
+            stacks.get_mut(index).unwrap().pop();
+
+            let right = get_matching_bracket(left).unwrap();
+            dbn.push_str(&right.to_string());
         }
     }
-    dbn.to_string()
+    Ok(dbn.to_string())
 }
 
 /// Writes a single SecondaryStructureRecord to the specified path in connect (CT) format.

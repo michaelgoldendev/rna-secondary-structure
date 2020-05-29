@@ -7,8 +7,8 @@ use rna_secondary_structure::*;
 use rna_secondary_structure::io;
 
 fn main() {
-    let paired = vec![8, 5, 6, 0, 2, 3, 0, 1];
-    println!("{}", io::get_dbn_string(paired));
+    let paired = vec![5, 7, 6, 9, 1, 3, 2, 10, 4, 8];
+    println!("{}", io::get_dbn_string(&paired).unwrap());
     let p1 = distance_metrics::get_structure_star(100);
     let p2 = distance_metrics::get_structure_zero(100);
     let dist3 = distance_metrics::get_normalised_mountain_distance(&p1, &p2, None).unwrap();
@@ -30,7 +30,8 @@ fn main() {
     println!("[{}]", ls.iter().fold(String::new(), |acc, num| acc + &num.to_string() + ", "));
 
     let mut ss = secondary_structure::SecondaryStructureRecord::from_str("(").unwrap_or_else(|err| {
-        panic!("{}", err)});
+        panic!("{}", err)
+    });
     ss.sequence = "AAAA".to_string();
     println!("{}", ss);
 
