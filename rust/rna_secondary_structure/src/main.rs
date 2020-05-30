@@ -5,10 +5,18 @@ use std::str::FromStr;
 
 use rna_secondary_structure::*;
 use rna_secondary_structure::io;
+use rna_secondary_structure::secondary_structure::get_dot_bracket_string;
 
 fn main() {
     let paired = vec![5, 7, 6, 9, 1, 3, 2, 10, 4, 8];
-    println!("{}", io::get_dot_bracket_string(&paired).unwrap());
+    println!("{:?}", paired);
+    //let paired = secondary_structure::from_dotbracketstring("(<.)>").unwrap();
+    let mountain = distance_metrics::get_mountain_vector(&paired);
+    println!("{:?}", mountain);
+    let paired2 = distance_metrics::get_paired_sites_from_mountain_vector(&mountain);
+    println!("{:?}", paired2);
+
+    println!("{}", get_dot_bracket_string(&paired).unwrap());
     let p1 = distance_metrics::get_structure_star(100);
     let p2 = distance_metrics::get_structure_zero(100);
     let dist3 = distance_metrics::get_normalised_mountain_distance(&p1, &p2, None).unwrap();

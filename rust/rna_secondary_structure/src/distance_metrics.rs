@@ -44,6 +44,36 @@ pub fn get_mountain_vector(paired: &dyn PairedSites) -> Vec<f64> {
     mountain
 }
 
+/// Returns a paired sites vector from a mountain vector. WARNING: this inversion is only valid
+/// for mountain vectors derived from non-pseudoknotted secondary structures.
+///
+/// # Examples
+/// ```rust
+/// use rna_secondary_structure::secondary_structure::from_dotbracketstring;
+/// use rna_secondary_structure::distance_metrics::*;
+/// let paired_exp = from_dotbracketstring("<<<..<<<.<..>>.>..>..>...<<...>..>>.>").unwrap();
+/// let mountain = get_mountain_vector(&paired_exp);
+/// let paired_obs = get_paired_sites_from_mountain_vector(&mountain);
+/// assert_eq!(paired_obs, paired_exp);
+/// ```
+pub fn get_paired_sites_from_mountain_vector(mountain: &Vec<f64>) -> Vec<i64> {
+    let mut stack: Vec<i64> = Vec::new();
+    let mut paired: Vec<i64> = vec![0; mountain.len()];
+    let mut last_height = 0.0;
+    for (i, height) in mountain.iter().enumerate() {
+        let height = *height;
+        if height > last_height {
+            stack.push(i as i64)
+        } else if height < last_height {
+            let j = stack.pop().unwrap();
+            paired[i] = j + 1;
+            paired[j as usize] = (i + 1) as i64;
+        }
+        last_height = height;
+    }
+    return paired;
+}
+
 /// Returns the mountain distance between two secondary structures.
 pub fn get_mountain_distance(paired1: &dyn PairedSites, paired2: &dyn PairedSites, p: Option<f64>) -> Result<f64, SecondaryStructureMetricError> {
     let paired1 = paired1.paired();

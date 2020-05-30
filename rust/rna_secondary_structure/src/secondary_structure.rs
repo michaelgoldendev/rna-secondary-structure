@@ -1,11 +1,10 @@
 //! A module for representing secondary structures.
 
 use std::fmt;
+use std::fmt::{Debug, Formatter};
 use std::str;
 
 use thiserror::Error;
-use std::fmt::{Debug, Formatter};
-use crate::io::get_dot_bracket_string;
 
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
@@ -31,6 +30,12 @@ pub enum StructureParseError {
 
     #[error("Insufficient bracket types are available for parsing structure unambigously.")]
     InsufficientBracketTypes,
+
+    #[error("All paired site(s) to the left have already been consumed.")]
+    InputConsumed,
+
+    #[error("Paired site(s) to the left have not been consumed.")]
+    InputNotConsumed,
 }
 
 /// A string of characters representing possible left bracket types
@@ -102,7 +107,7 @@ impl SecondaryStructureRecord {
     }
 
     /// Get a dot bracket string representation of the secondary structure conformation.
-    pub fn get_dot_bracket_string(&self) -> Result<String, StructureParseError>{
+    pub fn get_dot_bracket_string(&self) -> Result<String, StructureParseError> {
         get_dot_bracket_string(self)
     }
 }
@@ -206,4 +211,101 @@ impl str::FromStr for SecondaryStructureRecord {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(SecondaryStructureRecord::new(from_dotbracketstring(s)?))
     }
+}
+
+
+/// Converts a paired sites list representing an arbitarily pseudoknotted secondary structure into
+/// a dot bracket string representation.
+///
+/// # Examples
+///
+/// ```rust
+/// use rna_secondary_structure::secondary_structure::get_dot_bracket_string;
+/// let paired = vec![5, 7, 6, 9, 1, 3, 2, 10, 4, 8, 0, 0];
+/// let dbs_observed = get_dot_bracket_string(&paired).unwrap();
+/// let dbs_expected = "(<<{)>>(})..";
+/// assert_eq!(dbs_observed, dbs_expected);
+/// ```
+pub fn get_dot_bracket_string(paired: &dyn PairedSites) -> Result<String, StructureParseError> {
+    let paired = paired.paired();
+
+    let mut stacks: Vec<Vec<i64>> = Vec::new();
+    stacks.push(Vec::new());
+
+    let mut dbn = "".to_string();
+    for (i, j) in paired.iter().enumerate() {
+        let i = i as i64;
+        let j = *j;
+        if j == 0 {
+            dbn += ".";
+        } else if i < j {
+            let mut success = false;
+            for (index, left) in LEFT_BRACKETS.chars().enumerate() {
+                if index >= stacks.len() {
+                    stacks.push(Vec::new()); // add a new stack for an additional bracket type
+                }
+                let stack = stacks.get(index).unwrap();
+                if stack.len() == 0 || j < *stack.last().unwrap() {
+                    stacks.get_mut(index).unwrap().push(j);
+                    dbn += &left.to_string();
+                    success = true;
+                    break;
+                }
+            }
+            if !success {
+                return Err(StructureParseError::InsufficientBracketTypes);
+            }
+        } else {
+            let left = dbn.chars().nth((j - 1) as usize).unwrap();
+            let index = LEFT_BRACKETS.find(left).unwrap();
+            stacks.get_mut(index).unwrap().pop();
+
+            let right = get_matching_bracket(left).unwrap();
+            dbn.push_str(&right.to_string());
+        }
+    }
+    Ok(dbn.to_string())
+}
+
+/// Returns true if the given secondary structure is pseudoknotted, false otherwise.
+///
+/// # Examples
+/// ```rust
+/// use rna_secondary_structure::secondary_structure::{from_dotbracketstring, is_pseudoknotted};
+/// let non_pseudoknotted = from_dotbracketstring("<<<..<<<.<..>>.>..>..>...<<...>..>>.>").unwrap();
+/// assert_eq!(is_pseudoknotted(&non_pseudoknotted).unwrap(), false);
+/// let pseudoknotted = from_dotbracketstring("<<<..((.>>>....))").unwrap();
+/// assert_eq!(is_pseudoknotted(&pseudoknotted).unwrap(), true);
+/// let pseudoknotted2 = from_dotbracketstring("a..<<<..A...>>>....").unwrap();
+/// assert_eq!(is_pseudoknotted(&pseudoknotted2).unwrap(), true);
+/// ```
+pub fn is_pseudoknotted(paired: &dyn PairedSites) -> Result<bool, StructureParseError> {
+    let paired = paired.paired();
+
+    let mut stack: Vec<i64> = Vec::new();
+
+    for (i, j) in paired.iter().enumerate() {
+        let i = i as i64;
+        let j = *j;
+        if j == 0 {} else if i < j {
+            if stack.len() == 0 || j < *stack.last().unwrap() {
+                stack.push(j);
+            } else {
+                return Ok(true);
+            }
+        } else {
+            if stack.len() > 0 {
+                stack.pop();
+            } else {
+                return Err(StructureParseError::InputConsumed);
+            }
+        }
+    }
+
+    if stack.len() > 0 {
+        return Err(StructureParseError::InputNotConsumed);
+    }
+
+
+    Ok(false)
 }
