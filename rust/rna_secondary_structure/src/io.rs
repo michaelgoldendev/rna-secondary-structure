@@ -6,7 +6,7 @@ use std::io;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, StructureParseError, SecondaryStructureRecord};
+use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, PairedSites, SecondaryStructureRecord, StructureParseError};
 
 /// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecord
 ///
@@ -128,7 +128,7 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
     String::from_utf8(bytes).unwrap()
 }
 
-/// Converts a paired sites vector representing an arbitarily pseudoknotted secondary structure into
+/// Converts a paired sites list representing an arbitarily pseudoknotted secondary structure into
 /// a dot bracket string representation.
 ///
 /// # Examples
@@ -142,7 +142,9 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
 /// let dbs_expected = "(<<{)>>(})..";
 /// assert_eq!(dbs_observed, dbs_expected);
 /// ```
-pub fn get_dbn_string(paired: &Vec<i64>) -> Result<String, StructureParseError> {
+pub fn get_dbn_string(paired: &dyn PairedSites) -> Result<String, StructureParseError> {
+    let paired = paired.paired();
+
     let mut stacks: Vec<Vec<i64>> = Vec::new();
     stacks.push(Vec::new());
 

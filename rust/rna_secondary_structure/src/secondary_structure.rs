@@ -4,6 +4,7 @@ use std::fmt;
 use std::str;
 
 use thiserror::Error;
+use std::fmt::{Debug, Formatter};
 
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
@@ -113,6 +114,38 @@ impl SecondaryStructureRecord {
             }
         }
         dbs
+    }
+}
+
+/// A trait indicating that a struct can be converted to a vector representing a
+/// list of base-paired and unpaired sites.
+pub trait PairedSites {
+    /// Returns a reference to a list of base-paired and unpaired sites representing the
+    /// conformation of an arbitrarily pseudoknotted secondary structure.
+    fn paired(&self) -> &Vec<i64>;
+}
+
+impl PartialEq<dyn PairedSites> for dyn PairedSites {
+    fn eq(&self, other: &dyn PairedSites) -> bool {
+        self.paired() == other.paired()
+    }
+}
+
+impl PairedSites for SecondaryStructureRecord {
+    fn paired(&self) -> &Vec<i64> {
+        &self.paired
+    }
+}
+
+impl Debug for SecondaryStructureRecord {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.paired.fmt(f)
+    }
+}
+
+impl PairedSites for Vec<i64> {
+    fn paired(&self) -> &Vec<i64> {
+        &self
     }
 }
 
