@@ -118,40 +118,44 @@ impl SecondaryStructureRecord {
 
 /// Returns a vector of paired sites from a dot bracket string representation.
 /// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructureRecord.html#impl-FromStr).
-pub fn from_dotbracketstring(s: &str) -> Result<Vec::<i64>, SecondaryStructureParseError> {
-    let mut _paired = vec![0; s.len()];
-    let mut stack = Vec::<i64>::new();
-    for (i, c) in s.chars().enumerate() {
+pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, SecondaryStructureParseError> {
+    let mut _paired = vec![0; dbs.len()];
+    let mut stacks: Vec<Vec<i64>> = Vec::new();
+    stacks.push(Vec::new());
+
+    for (i, c) in dbs.chars().enumerate() {
         if is_left_bracket(c) {
-            stack.push(i as i64);
+            let index = LEFT_BRACKETS.find(c).unwrap();
+            while stacks.len() <= index {
+                stacks.push(Vec::new()); // add more stacks if additional bracket types are used.
+            }
+            stacks.get_mut(index).unwrap().push(i as i64);
         } else if is_right_bracket(c) {
-            match stack.last() {
-                None => return Err(
+            let index = RIGHT_BRACKETS.find(c).unwrap();
+            if stacks.get(index).unwrap().len() == 0 {
+                return Err(
                     SecondaryStructureParseError::MissingLeftParentheses {
                         left: get_matching_bracket(c)?,
                         right: c,
                         pos: i + 1,
-                    }),
-                Some(j) => {
-                    if get_matching_bracket(c)? == s.chars().nth(*j as usize).unwrap() {
-                        _paired[i] = j + 1;
-                        _paired[*j as usize] = (i as i64) + 1;
-                        stack.pop();
-                    }
-                }
+                    });
+            } else {
+                let j = stacks.get_mut(index).unwrap().pop().unwrap();
+                _paired[i] = j + 1;
+                _paired[j as usize] = (i as i64) + 1;
             }
         }
     }
 
-    if stack.len() > 0 {
+    /*if stack.len() > 0 {
         let j = stack.pop().unwrap() as usize;
-        let c = s.chars().nth(j).unwrap();
+        let c = dbs.chars().nth(j).unwrap();
         return Err(SecondaryStructureParseError::MissingRightParentheses {
             left: c,
             right: get_matching_bracket(c)?,
             pos: j + 1,
         });
-    }
+    }*/
 
     Ok(_paired)
 }

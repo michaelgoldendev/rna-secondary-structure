@@ -2,51 +2,11 @@
 
 use std::error::Error;
 use std::fs::OpenOptions;
-use std::io::prelude::*;
+use std::io;
 use std::path::Path;
 
 use crate::secondary_structure;
 use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, SecondaryStructureParseError, SecondaryStructureRecord};
-
-// TODO: get_ct_string expects user to supply a paired sites array and sequence, should be a SecondaryStructureRecord?
-
-/// Get a connect (CT) format string representation of a secondary structure and sequence.
-/// The CT format can represent arbitarily pseudoknotted secondary structures.
-///
-/// # Examples
-/// 
-/// ```rust
-/// use crate::rna_secondary_structure::secondary_structure;
-/// use crate::rna_secondary_structure::io;
-/// 
-/// let mut ss : secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
-/// ss.set_sequence("CGAACAAG".to_string());
-/// ss.name = "example".to_string();
-/// let ct_string_observed = io::get_ct_string(&ss);
-/// 
-/// let ct_string_expected =
-/// ">example
-/// 1	C	0	2	8	1
-/// 2	G	1	3	5	2
-/// 3	A	2	4	0	3
-/// 4	A	3	5	0	4
-/// 5	C	4	6	2	5
-/// 6	A	5	7	0	6
-/// 7	A	6	8	0	7
-/// 8	G	7	9	1	8
-/// ";
-///
-/// assert_eq!(ct_string_observed, ct_string_expected);
-/// ```
-pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
-    let it = ss.sequence.chars().zip(ss.paired.iter());
-
-    let mut data = format!(">{}\n", ss.name);
-    for (i, (c, j)) in it.enumerate() {
-        data.push_str(&format!("{}\t{}\t{}\t{}\t{}\t{}\n", i + 1, c, i, i + 2, j, i + 1));
-    }
-    data
-}
 
 /// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecord
 ///
@@ -109,6 +69,65 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     ls
 }
 
+fn write_ct(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
+    let it = ss.sequence.chars().zip(ss.paired.iter());
+
+    buffer.write(format!(">{}\n", ss.name).as_bytes())?;
+    for (i, (c, j)) in it.enumerate() {
+        buffer.write(format!("{}\t{}\t{}\t{}\t{}\t{}\n", i + 1, c, i, i + 2, j, i + 1).as_bytes())?;
+    }
+    Ok(())
+}
+
+/// Writes a single SecondaryStructureRecord to the specified path in connect (CT) format.
+pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
+    let append = false;
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(append)
+        .truncate(!append)
+        .open(&path)?;
+    write_ct(&mut file, ss)?;
+
+    Ok(())
+}
+
+/// Get a connect (CT) format string representation of a secondary structure and sequence.
+/// The CT format can represent arbitarily pseudoknotted secondary structures.
+///
+/// # Examples
+/// 
+/// ```rust
+/// use crate::rna_secondary_structure::secondary_structure;
+/// use crate::rna_secondary_structure::io;
+/// 
+/// let mut ss : secondary_structure::SecondaryStructureRecord = "((..)..)".parse().unwrap();
+/// ss.set_sequence("CGAACAAG".to_string());
+/// ss.name = "example".to_string();
+/// let ct_string_observed = io::get_ct_string(&ss);
+/// 
+/// let ct_string_expected =
+/// ">example
+/// 1	C	0	2	8	1
+/// 2	G	1	3	5	2
+/// 3	A	2	4	0	3
+/// 4	A	3	5	0	4
+/// 5	C	4	6	2	5
+/// 6	A	5	7	0	6
+/// 7	A	6	8	0	7
+/// 8	G	7	9	1	8
+/// ";
+///
+/// assert_eq!(ct_string_observed, ct_string_expected);
+/// ```
+pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
+    let mut bytes = Vec::new();
+    write_ct(&mut bytes, ss).unwrap();
+    String::from_utf8(bytes).unwrap()
+}
+
 /// Converts a paired sites vector representing an arbitarily pseudoknotted secondary structure into
 /// a dot bracket string representation.
 ///
@@ -162,8 +181,19 @@ pub fn get_dbn_string(paired: &Vec<i64>) -> Result<String, SecondaryStructurePar
     Ok(dbn.to_string())
 }
 
-/// Writes a single SecondaryStructureRecord to the specified path in connect (CT) format.
-pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
+/// Convert a secondary structure to a dot bracket structure
+pub fn write_full_dot_bracket_repr(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
+    buffer.write(format!(">{}", &ss.name).as_bytes())?;
+    buffer.write("\n".as_bytes())?;
+    buffer.write(&ss.sequence.as_bytes())?;
+    buffer.write("\n".as_bytes())?;
+    buffer.write(get_dbn_string(&ss.paired)?.as_bytes())?;
+    buffer.write("\n".as_bytes())?;
+    Ok(())
+}
+
+/// Convert a secondary structure to it's full dot bracket structure representation and write it to file.
+pub fn write_dbn_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     let append = false;
 
     let mut file = OpenOptions::new()
@@ -172,7 +202,8 @@ pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRe
         .append(append)
         .truncate(!append)
         .open(&path)?;
+    write_full_dot_bracket_repr(&mut file, ss)?;
 
-    file.write_all(get_ct_string(ss).as_bytes())?;
     Ok(())
 }
+
