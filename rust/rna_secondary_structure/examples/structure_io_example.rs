@@ -4,7 +4,6 @@ use std::path::Path;
 
 use rna_secondary_structure::*;
 use rna_secondary_structure::io::*;
-use rna_secondary_structure::secondary_structure::SecondaryStructureRecord;
 
 fn main() {
     let ss: secondary_structure::SecondaryStructureRecord = "<((..)..).a>..A".parse().unwrap();

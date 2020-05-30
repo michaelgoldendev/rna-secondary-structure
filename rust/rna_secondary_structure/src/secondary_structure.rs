@@ -100,6 +100,11 @@ impl SecondaryStructureRecord {
     pub fn set_paired(&mut self, paired: Vec<i64>) -> () {
         self.paired = paired;
     }
+
+    /// Get a dot bracket string representation of the secondary structure conformation.
+    pub fn get_dot_bracket_string(&self) -> Result<String, StructureParseError>{
+        get_dot_bracket_string(self)
+    }
 }
 
 /// A trait indicating that a struct can be converted to a vector representing a
