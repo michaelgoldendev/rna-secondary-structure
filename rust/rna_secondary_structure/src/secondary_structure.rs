@@ -5,6 +5,7 @@ use std::str;
 
 use thiserror::Error;
 use std::fmt::{Debug, Formatter};
+use crate::io::get_dot_bracket_string;
 
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
@@ -99,22 +100,6 @@ impl SecondaryStructureRecord {
     pub fn set_paired(&mut self, paired: Vec<i64>) -> () {
         self.paired = paired;
     }
-
-    /// Returns a dot bracket string representation of the secondary structure configuration.
-    pub fn get_dotbracketstring(&self) -> String {
-        // TODO: add mixed bracket types for ambiguous/pseudoknotted structures.
-        let mut dbs = String::with_capacity(self.paired.len());
-        for (i, j) in self.paired.iter().enumerate() {
-            if j == &(0 as i64) {
-                dbs.push('.')
-            } else if j > &(i as i64) {
-                dbs.push('(')
-            } else {
-                dbs.push(')')
-            }
-        }
-        dbs
-    }
 }
 
 /// A trait indicating that a struct can be converted to a vector representing a
@@ -196,7 +181,7 @@ pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, StructureParseErro
 
 impl fmt::Display for SecondaryStructureRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}\n{}", self.sequence, self.get_dotbracketstring())
+        write!(f, ">{}\n{}\n{}", self.name, self.sequence, get_dot_bracket_string(self).unwrap())
     }
 }
 

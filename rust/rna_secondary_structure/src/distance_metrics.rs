@@ -139,7 +139,8 @@ pub fn get_normalised_mountain_distance(paired1: &dyn PairedSites, paired2: &dyn
 
 /// Returns a weighted mountain vector, where at base-paired positions the step up or down in
 /// mountain height is inversely proportional to the number of nucleotides seperating the base-pairs.
-pub fn get_weighted_mountain_vector(paired: &Vec<i64>) -> Vec<f64> {
+pub fn get_weighted_mountain_vector(paired: &dyn PairedSites) -> Vec<f64> {
+    let paired = paired.paired();
     let mut mountain = vec![0.0; paired.len()];
     for (i, j) in paired.iter().enumerate() {
         if i > 0 {

@@ -3,12 +3,13 @@
 use std::error::Error;
 use std::fs::OpenOptions;
 use std::io;
-use std::path::Path;
+use std::path::{Path};
 
 use crate::secondary_structure;
 use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, PairedSites, SecondaryStructureRecord, StructureParseError};
+use std::iter::*;
 
-/// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecord
+/// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecords.
 ///
 /// # Examples
 ///
@@ -94,6 +95,39 @@ pub fn write_ct_file(path: &Path, ss: &secondary_structure::SecondaryStructureRe
     Ok(())
 }
 
+/// Write a collection of SecondaryStructureRecords to a buffer in connect (CT) format.
+pub fn write_records_to_ct_buffer<'a, I>(buffer: &mut dyn io::Write, records : I) -> Result<(), Box<dyn Error>>
+where
+    I: IntoIterator<Item = &'a &'a SecondaryStructureRecord>
+{
+    for ss in records
+    {
+        write_ct(buffer, ss)?;
+    }
+    Ok(())
+}
+
+/// Write a collection of SecondaryStructureRecords to the specified file path in connect (CT)
+/// format.
+pub fn write_records_to_ct_file<'a, I>(path: &Path, records : I) -> Result<(), Box<dyn Error>>
+    where
+        I: IntoIterator<Item = &'a &'a SecondaryStructureRecord>
+{
+    let append = false;
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(append)
+        .truncate(!append)
+        .open(&path)?;
+    write_records_to_ct_buffer(&mut file, records)?;
+
+    Ok(())
+}
+
+
+
 /// Get a connect (CT) format string representation of a secondary structure and sequence.
 /// The CT format can represent arbitarily pseudoknotted secondary structures.
 ///
@@ -138,11 +172,11 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
 ///
 /// let paired = vec![5, 7, 6, 9, 1, 3, 2, 10, 4, 8, 0, 0];
 ///
-/// let dbs_observed = io::get_dbn_string(&paired).unwrap();
+/// let dbs_observed = io::get_dot_bracket_string(&paired).unwrap();
 /// let dbs_expected = "(<<{)>>(})..";
 /// assert_eq!(dbs_observed, dbs_expected);
 /// ```
-pub fn get_dbn_string(paired: &dyn PairedSites) -> Result<String, StructureParseError> {
+pub fn get_dot_bracket_string(paired: &dyn PairedSites) -> Result<String, StructureParseError> {
     let paired = paired.paired();
 
     let mut stacks: Vec<Vec<i64>> = Vec::new();
@@ -183,18 +217,20 @@ pub fn get_dbn_string(paired: &dyn PairedSites) -> Result<String, StructureParse
     Ok(dbn.to_string())
 }
 
-/// Convert a secondary structure to a dot bracket structure
+/// Convert a secondary structure to it's full dot bracket structure representation and write it to
+/// a buffer.
 pub fn write_full_dot_bracket_repr(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     buffer.write(format!(">{}", &ss.name).as_bytes())?;
     buffer.write("\n".as_bytes())?;
     buffer.write(&ss.sequence.as_bytes())?;
     buffer.write("\n".as_bytes())?;
-    buffer.write(get_dbn_string(&ss.paired)?.as_bytes())?;
+    buffer.write(get_dot_bracket_string(&ss.paired)?.as_bytes())?;
     buffer.write("\n".as_bytes())?;
     Ok(())
 }
 
-/// Convert a secondary structure to it's full dot bracket structure representation and write it to file.
+/// Convert a secondary structure to it's full dot bracket structure representation and write it to
+/// the specified file path.
 pub fn write_dbn_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     let append = false;
 
@@ -205,6 +241,37 @@ pub fn write_dbn_file(path: &Path, ss: &secondary_structure::SecondaryStructureR
         .truncate(!append)
         .open(&path)?;
     write_full_dot_bracket_repr(&mut file, ss)?;
+
+    Ok(())
+}
+
+/// Write a collection of SecondaryStructureRecords to a buffer in full dot bracket notation format.
+pub fn write_records_to_dbn<'a, I>(buffer: &mut dyn io::Write, records : I) -> Result<(), Box<dyn Error>>
+where
+    I: IntoIterator<Item = &'a &'a SecondaryStructureRecord>
+{
+    for ss in records
+    {
+        write_full_dot_bracket_repr(buffer, ss)?;
+    }
+    Ok(())
+}
+
+/// Write a collection of SecondaryStructureRecords to the specified file path in full dot bracket
+/// notation format.
+pub fn write_records_to_dbn_file<'a, I>(path: &Path, records : I) -> Result<(), Box<dyn Error>>
+    where
+        I: IntoIterator<Item = &'a &'a SecondaryStructureRecord>
+{
+    let append = false;
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(append)
+        .truncate(!append)
+        .open(&path)?;
+    write_records_to_dbn(&mut file, records)?;
 
     Ok(())
 }
