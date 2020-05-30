@@ -6,7 +6,7 @@ use std::io;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, SecondaryStructureParseError, SecondaryStructureRecord};
+use crate::secondary_structure::{get_matching_bracket, LEFT_BRACKETS, StructureParseError, SecondaryStructureRecord};
 
 /// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecord
 ///
@@ -142,7 +142,7 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
 /// let dbs_expected = "(<<{)>>(})..";
 /// assert_eq!(dbs_observed, dbs_expected);
 /// ```
-pub fn get_dbn_string(paired: &Vec<i64>) -> Result<String, SecondaryStructureParseError> {
+pub fn get_dbn_string(paired: &Vec<i64>) -> Result<String, StructureParseError> {
     let mut stacks: Vec<Vec<i64>> = Vec::new();
     stacks.push(Vec::new());
 
@@ -167,7 +167,7 @@ pub fn get_dbn_string(paired: &Vec<i64>) -> Result<String, SecondaryStructurePar
                 }
             }
             if !success {
-                return Err(SecondaryStructureParseError::InsufficientBracketTypes);
+                return Err(StructureParseError::InsufficientBracketTypes);
             }
         } else {
             let left = dbn.chars().nth((j - 1) as usize).unwrap();

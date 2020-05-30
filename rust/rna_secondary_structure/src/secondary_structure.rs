@@ -7,7 +7,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
-pub enum SecondaryStructureParseError {
+pub enum StructureParseError {
     #[error("Missing left parentheses '{left}' for '{right}' at position {pos}")]
     MissingLeftParentheses {
         left: char,
@@ -50,7 +50,7 @@ fn is_right_bracket(brace: char) -> bool {
 /// #[test]
 /// assert_eq!(self::get_matching_bracket('Z').unwrap(), 'z');
 /// ```
-pub fn get_matching_bracket(brace: char) -> Result<char, SecondaryStructureParseError> {
+pub fn get_matching_bracket(brace: char) -> Result<char, StructureParseError> {
     let left_pos = LEFT_BRACKETS.find(brace).unwrap_or(1000);
     if left_pos != 1000 {
         return Ok(RIGHT_BRACKETS.chars().nth(left_pos).unwrap());
@@ -61,7 +61,7 @@ pub fn get_matching_bracket(brace: char) -> Result<char, SecondaryStructureParse
         return Ok(LEFT_BRACKETS.chars().nth(right_pos).unwrap());
     }
 
-    return Err(SecondaryStructureParseError::BracketTypeNotRecognised {
+    return Err(StructureParseError::BracketTypeNotRecognised {
         c: brace
     });
 }
@@ -118,7 +118,7 @@ impl SecondaryStructureRecord {
 
 /// Returns a vector of paired sites from a dot bracket string representation.
 /// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructureRecord.html#impl-FromStr).
-pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, SecondaryStructureParseError> {
+pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, StructureParseError> {
     let mut _paired = vec![0; dbs.len()];
     let mut stacks: Vec<Vec<i64>> = Vec::new();
     stacks.push(Vec::new());
@@ -134,7 +134,7 @@ pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, SecondaryStructure
             let index = RIGHT_BRACKETS.find(c).unwrap();
             if stacks.get(index).unwrap().len() == 0 {
                 return Err(
-                    SecondaryStructureParseError::MissingLeftParentheses {
+                    StructureParseError::MissingLeftParentheses {
                         left: get_matching_bracket(c)?,
                         right: c,
                         pos: i + 1,
@@ -151,7 +151,7 @@ pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, SecondaryStructure
         if stack.len() > 0 {
             let j = *stack.last().unwrap() as usize;
             let c = dbs.chars().nth(j).unwrap();
-            return Err(SecondaryStructureParseError::MissingRightParentheses {
+            return Err(StructureParseError::MissingRightParentheses {
                 left: c,
                 right: get_matching_bracket(c)?,
                 pos: j + 1,
@@ -179,7 +179,7 @@ impl fmt::Display for SecondaryStructureRecord {
 /// assert_eq!(ss.paired, paired);
 /// ```
 impl str::FromStr for SecondaryStructureRecord {
-    type Err = SecondaryStructureParseError;
+    type Err = StructureParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(SecondaryStructureRecord::new(from_dotbracketstring(s)?))
     }
