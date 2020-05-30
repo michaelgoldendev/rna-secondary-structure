@@ -73,9 +73,9 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
 fn write_ct(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     let it = ss.sequence.chars().zip(ss.paired.iter());
 
-    buffer.write(format!(">{}\n", ss.name).as_bytes())?;
+    buffer.write_all(format!(">{}\n", ss.name).as_bytes())?;
     for (i, (c, j)) in it.enumerate() {
-        buffer.write(format!("{}\t{}\t{}\t{}\t{}\t{}\n", i + 1, c, i, i + 2, j, i + 1).as_bytes())?;
+        buffer.write_all(format!("{}\t{}\t{}\t{}\t{}\t{}\n", i + 1, c, i, i + 2, j, i + 1).as_bytes())?;
     }
     Ok(())
 }
@@ -163,12 +163,12 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
 /// Convert a secondary structure to it's full dot bracket structure representation and write it to
 /// a buffer.
 pub fn write_full_dot_bracket_repr(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
-    buffer.write(format!(">{}", &ss.name).as_bytes())?;
-    buffer.write("\n".as_bytes())?;
-    buffer.write(&ss.sequence.as_bytes())?;
-    buffer.write("\n".as_bytes())?;
-    buffer.write(get_dot_bracket_string(&ss.paired)?.as_bytes())?;
-    buffer.write("\n".as_bytes())?;
+    buffer.write_all(format!(">{}", &ss.name).as_bytes())?;
+    buffer.write_all("\n".as_bytes())?;
+    buffer.write_all(&ss.sequence.as_bytes())?;
+    buffer.write_all("\n".as_bytes())?;
+    buffer.write_all(get_dot_bracket_string(&ss.paired)?.as_bytes())?;
+    buffer.write_all("\n".as_bytes())?;
     Ok(())
 }
 
