@@ -13,7 +13,7 @@ fn main() {
     //let paired = secondary_structure::from_dotbracketstring("(<.)>").unwrap();
     let mountain = distance_metrics::get_mountain_vector(&paired);
     println!("{:?}", mountain);
-    let paired2 = distance_metrics::get_paired_sites_from_mountain_vector(&mountain);
+    let paired2 = distance_metrics::invert_mountain_vector(&mountain);
     println!("{:?}", paired2);
 
     println!("{}", get_dot_bracket_string(&paired).unwrap());

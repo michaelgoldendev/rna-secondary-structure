@@ -68,9 +68,7 @@ pub fn get_matching_bracket(brace: char) -> Result<char, StructureParseError> {
         return Ok(LEFT_BRACKETS.chars().nth(right_pos).unwrap());
     }
 
-    return Err(StructureParseError::BracketTypeNotRecognised {
-        c: brace
-    });
+    Err(StructureParseError::BracketTypeNotRecognised { c: brace })
 }
 
 /// A struct represent a secondary structure and it's corresponding nucleotide sequence.
@@ -97,12 +95,12 @@ impl SecondaryStructureRecord {
     }
 
     /// Set the nucleotide sequence
-    pub fn set_sequence(&mut self, sequence: String) -> () {
+    pub fn set_sequence(&mut self, sequence: String) {
         self.sequence = sequence;
     }
 
     /// Set the secondary structure configuration
-    pub fn set_paired(&mut self, paired: Vec<i64>) -> () {
+    pub fn set_paired(&mut self, paired: Vec<i64>) {
         self.paired = paired;
     }
 
@@ -146,7 +144,7 @@ impl PairedSites for Vec<i64> {
 
 /// Returns a vector of paired sites from a dot bracket string representation.
 /// For usage see [FromStr for SecondaryStructure](struct.SecondaryStructureRecord.html#impl-FromStr).
-pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, StructureParseError> {
+pub fn from_dotbracketstring(dbs: &str) -> Result<Vec<i64>, StructureParseError> {
     let mut _paired = vec![0; dbs.len()];
     let mut stacks: Vec<Vec<i64>> = Vec::new();
     stacks.push(Vec::new());
@@ -160,23 +158,23 @@ pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, StructureParseErro
             stacks.get_mut(index).unwrap().push(i as i64);
         } else if is_right_bracket(c) {
             let index = RIGHT_BRACKETS.find(c).unwrap();
-            if stacks.get(index).unwrap().len() == 0 {
+            if !(stacks.get(index).unwrap().is_empty()) {
+                let j = stacks.get_mut(index).unwrap().pop().unwrap();
+                _paired[i] = j + 1;
+                _paired[j as usize] = (i as i64) + 1;
+            } else {
                 return Err(
                     StructureParseError::MissingLeftParentheses {
                         left: get_matching_bracket(c)?,
                         right: c,
                         pos: i + 1,
                     });
-            } else {
-                let j = stacks.get_mut(index).unwrap().pop().unwrap();
-                _paired[i] = j + 1;
-                _paired[j as usize] = (i as i64) + 1;
             }
         }
     }
 
     for stack in stacks.iter() {
-        if stack.len() > 0 {
+        if !stack.is_empty() {
             let j = *stack.last().unwrap() as usize;
             let c = dbs.chars().nth(j).unwrap();
             return Err(StructureParseError::MissingRightParentheses {
@@ -245,7 +243,7 @@ pub fn get_dot_bracket_string(paired: &dyn PairedSites) -> Result<String, Struct
                     stacks.push(Vec::new()); // add a new stack for an additional bracket type
                 }
                 let stack = stacks.get(index).unwrap();
-                if stack.len() == 0 || j < *stack.last().unwrap() {
+                if stack.is_empty() || j < *stack.last().unwrap() {
                     stacks.get_mut(index).unwrap().push(j);
                     dbn += &left.to_string();
                     success = true;
@@ -264,7 +262,7 @@ pub fn get_dot_bracket_string(paired: &dyn PairedSites) -> Result<String, Struct
             dbn.push_str(&right.to_string());
         }
     }
-    Ok(dbn.to_string())
+    Ok(dbn)
 }
 
 /// Returns true if the given secondary structure is pseudoknotted, false otherwise.
@@ -288,21 +286,19 @@ pub fn is_pseudoknotted(paired: &dyn PairedSites) -> Result<bool, StructureParse
         let i = i as i64;
         let j = *j;
         if j == 0 {} else if i < j {
-            if stack.len() == 0 || j < *stack.last().unwrap() {
-                stack.push(j);
-            } else {
+            if !stack.is_empty() && j >= *stack.last().unwrap() {
                 return Ok(true);
-            }
-        } else {
-            if stack.len() > 0 {
-                stack.pop();
             } else {
-                return Err(StructureParseError::InputConsumed);
+                stack.push(j);
             }
+        } else if !stack.is_empty() {
+            stack.pop();
+        } else {
+            return Err(StructureParseError::InputConsumed);
         }
     }
 
-    if stack.len() > 0 {
+    if !stack.is_empty() {
         return Err(StructureParseError::InputNotConsumed);
     }
 

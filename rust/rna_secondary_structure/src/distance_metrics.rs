@@ -53,10 +53,10 @@ pub fn get_mountain_vector(paired: &dyn PairedSites) -> Vec<f64> {
 /// use rna_secondary_structure::distance_metrics::*;
 /// let paired_exp = from_dotbracketstring("<<<..<<<.<..>>.>..>..>...<<...>..>>.>").unwrap();
 /// let mountain = get_mountain_vector(&paired_exp);
-/// let paired_obs = get_paired_sites_from_mountain_vector(&mountain);
+/// let paired_obs = invert_mountain_vector(&mountain);
 /// assert_eq!(paired_obs, paired_exp);
 /// ```
-pub fn get_paired_sites_from_mountain_vector(mountain: &Vec<f64>) -> Vec<i64> {
+pub fn invert_mountain_vector(mountain: &[f64]) -> Vec<i64> {
     let mut stack: Vec<i64> = Vec::new();
     let mut paired: Vec<i64> = vec![0; mountain.len()];
     let mut last_height = 0.0;
@@ -71,7 +71,7 @@ pub fn get_paired_sites_from_mountain_vector(mountain: &Vec<f64>) -> Vec<i64> {
         }
         last_height = height;
     }
-    return paired;
+    paired
 }
 
 /// Returns the mountain distance between two secondary structures.
@@ -167,8 +167,8 @@ pub fn get_normalised_mountain_distance(paired1: &dyn PairedSites, paired2: &dyn
     Ok(get_mountain_distance(paired1, paired2, p)? / get_mountain_diameter(paired1.len() as i64, p))
 }
 
-/// Returns a weighted mountain vector, where at base-paired positions the step up or down in
-/// mountain height is inversely proportional to the number of nucleotides seperating the base-pairs.
+/// Returns a weighted mountain vector, where the step up or down in mountain height at base-paired
+/// positions is inversely proportional to the number of nucleotides separating the base-pairs.
 pub fn get_weighted_mountain_vector(paired: &dyn PairedSites) -> Vec<f64> {
     let paired = paired.paired();
     let mut mountain = vec![0.0; paired.len()];

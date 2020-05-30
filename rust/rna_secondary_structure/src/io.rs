@@ -28,13 +28,10 @@ use crate::secondary_structure::{get_dot_bracket_string, SecondaryStructureRecor
 /// 8	G	7	9	1	8
 /// ";
 ///
-/// let ls = io::parse_ct_string(&ct_string.to_string());
-/// let observed_ss = &ls[0];
-/// let seq = "CGAACAAG";
-/// let paired = vec![8, 5, 0, 0, 2, 0, 0, 1];
+/// let observed_ss = &io::parse_ct_string(&ct_string.to_string())[0];
 /// assert_eq!(observed_ss.name, "example");
-/// assert_eq!(observed_ss.sequence, seq);
-/// assert_eq!(observed_ss.paired, paired);
+/// assert_eq!(observed_ss.sequence, "CGAACAAG");
+/// assert_eq!(observed_ss.paired, vec![8, 5, 0, 0, 2, 0, 0, 1]);
 /// ```
 pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     let mut ls: Vec<SecondaryStructureRecord> = Vec::new();
@@ -43,8 +40,8 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
     let mut name = "".to_string();
     for line in ct_string.lines() {
         let spl = line.trim().split_whitespace().collect::<Vec<&str>>();
-        if spl.len() > 0 && spl[0].starts_with(">") {
-            if paired.len() > 0 {
+        if !spl.is_empty() && spl[0].starts_with('>') {
+            if !paired.is_empty() {
                 ls.push(SecondaryStructureRecord {
                     name: name.clone(),
                     sequence: sequence.to_string(),
@@ -59,10 +56,10 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
             paired.push(spl[4].parse::<i64>().unwrap());
         }
     }
-    if paired.len() > 0 {
+    if !paired.is_empty() {
         ls.push(SecondaryStructureRecord {
-            name: name.clone(),
-            sequence: sequence.to_string(),
+            name,
+            sequence,
             paired: paired.clone(),
         });
         paired.clear();
@@ -164,11 +161,11 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
 /// a buffer.
 pub fn write_full_dot_bracket_repr(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     buffer.write_all(format!(">{}", &ss.name).as_bytes())?;
-    buffer.write_all("\n".as_bytes())?;
+    buffer.write_all(b"\n")?;
     buffer.write_all(&ss.sequence.as_bytes())?;
-    buffer.write_all("\n".as_bytes())?;
+    buffer.write_all(b"\n")?;
     buffer.write_all(get_dot_bracket_string(&ss.paired)?.as_bytes())?;
-    buffer.write_all("\n".as_bytes())?;
+    buffer.write_all(b"\n")?;
     Ok(())
 }
 
