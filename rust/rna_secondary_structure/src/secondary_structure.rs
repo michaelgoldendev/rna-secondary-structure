@@ -147,16 +147,17 @@ pub fn from_dotbracketstring(dbs: &str) -> Result<Vec::<i64>, SecondaryStructure
         }
     }
 
-    /*if stack.len() > 0 {
-        let j = stack.pop().unwrap() as usize;
-        let c = dbs.chars().nth(j).unwrap();
-        return Err(SecondaryStructureParseError::MissingRightParentheses {
-            left: c,
-            right: get_matching_bracket(c)?,
-            pos: j + 1,
-        });
-    }*/
-
+    for stack in stacks.iter() {
+        if stack.len() > 0 {
+            let j = *stack.last().unwrap() as usize;
+            let c = dbs.chars().nth(j).unwrap();
+            return Err(SecondaryStructureParseError::MissingRightParentheses {
+                left: c,
+                right: get_matching_bracket(c)?,
+                pos: j + 1,
+            });
+        }
+    }
     Ok(_paired)
 }
 
