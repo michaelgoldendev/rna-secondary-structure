@@ -64,10 +64,10 @@ fn parse_ct(reader: impl BufRead) -> Result<Vec<SecondaryStructureRecord>, Box<d
 /// 8	G	7	9	1	8
 /// ";
 ///
-/// let observed_ss = &io::parse_ct_string(&ct_string.to_string()).unwrap()[0];
-/// assert_eq!(observed_ss.name, "example");
-/// assert_eq!(observed_ss.sequence, "CGAACAAG");
-/// assert_eq!(observed_ss.paired, vec![8, 5, 0, 0, 2, 0, 0, 1]);
+/// let ss_obs = &io::parse_ct_string(&ct_string.to_string()).unwrap()[0];
+/// assert_eq!(ss_obs.name, "example");
+/// assert_eq!(ss_obs.sequence, "CGAACAAG");
+/// assert_eq!(ss_obs.paired, vec![8, 5, 0, 0, 2, 0, 0, 1]);
 /// ```
 pub fn parse_ct_string(ct_string: &String) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
     parse_ct(ct_string.as_bytes())
@@ -264,9 +264,41 @@ fn parse_dbn(reader: impl BufRead) -> Result<Vec<SecondaryStructureRecord>, Box<
     Ok(ls)
 }
 
-/// Reads a dot bracket notation (dbn) format file and returns a vector of SecondaryStructureRecords.
+/// Reads a dot bracket notation (DBN) format file and returns a vector of SecondaryStructureRecords.
 pub fn read_dbn_file(f: File) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
     parse_dbn(BufReader::new(f))
 }
+
+/// Reads a dot bracket notation (DBN) string and returns a vector of SecondaryStructureRecords.
+///
+/// # Examples
+///
+/// ```rust
+/// use crate::rna_secondary_structure::io;
+///
+/// let dbn_string =
+///">non-pseudoknotted
+/// AUUCCCGAAGGU
+/// ((((..))..))
+///
+/// >pseudoknotted
+/// GACCGCAUCUUAGCGGUA
+/// ((..<<.)).((>>..))
+/// ";
+///
+/// let non_pseudoknotted = &io::parse_dbn_string(&dbn_string.to_string()).unwrap()[0];
+/// assert_eq!(non_pseudoknotted.name, "non-pseudoknotted");
+/// assert_eq!(non_pseudoknotted.sequence, "AUUCCCGAAGGU");
+/// assert_eq!(non_pseudoknotted.paired, vec![12, 11, 8, 7, 0, 0, 4, 3, 0, 0, 2, 1]);
+///
+/// let pseudoknotted = &io::parse_dbn_string(&dbn_string.to_string()).unwrap()[1];
+/// assert_eq!(pseudoknotted.name, "pseudoknotted");
+/// assert_eq!(pseudoknotted.sequence, "GACCGCAUCUUAGCGGUA");
+/// assert_eq!(pseudoknotted.paired, vec![9, 8, 0, 0, 14, 13, 0, 2, 1, 0, 18, 17, 6, 5, 0, 0, 12, 11]);
+/// ```
+pub fn parse_dbn_string(dbn_string: &String) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
+    parse_dbn(dbn_string.as_bytes())
+}
+
 
 
