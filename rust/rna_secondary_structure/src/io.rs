@@ -125,7 +125,6 @@ pub fn write_records_to_ct_file<'a, I>(path: &Path, records: I) -> Result<(), Bo
 
 
 /// Get a connect (CT) format string representation of a secondary structure and sequence.
-/// The CT format can represent arbitarily pseudoknotted secondary structures.
 ///
 /// # Examples
 /// 
@@ -157,9 +156,9 @@ pub fn get_ct_string(ss: &SecondaryStructureRecord) -> String {
     String::from_utf8(bytes).unwrap()
 }
 
-/// Convert a secondary structure to it's full dot bracket structure representation and write it to
-/// a buffer.
-pub fn write_full_dot_bracket_repr(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
+/// Write the name, sequence, and secondary structure conformation (in dot bracket notation) of a
+/// SecondaryStructureRecord to a buffer.
+pub fn write_dbn(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     buffer.write_all(format!(">{}", &ss.name).as_bytes())?;
     buffer.write_all(b"\n")?;
     buffer.write_all(&ss.sequence.as_bytes())?;
@@ -169,8 +168,8 @@ pub fn write_full_dot_bracket_repr(buffer: &mut dyn io::Write, ss: &SecondaryStr
     Ok(())
 }
 
-/// Convert a secondary structure to it's full dot bracket structure representation and write it to
-/// the specified file path.
+/// Write the name, sequence, and secondary structure conformation (in dot bracket notation) of a
+/// SecondaryStructureRecord to the specified file path.
 pub fn write_dbn_file(path: &Path, ss: &secondary_structure::SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
     let append = false;
 
@@ -180,7 +179,7 @@ pub fn write_dbn_file(path: &Path, ss: &secondary_structure::SecondaryStructureR
         .append(append)
         .truncate(!append)
         .open(&path)?;
-    write_full_dot_bracket_repr(&mut file, ss)?;
+    write_dbn(&mut file, ss)?;
 
     Ok(())
 }
@@ -192,7 +191,7 @@ pub fn write_records_to_dbn<'a, I>(buffer: &mut dyn io::Write, records: I) -> Re
 {
     for ss in records
     {
-        write_full_dot_bracket_repr(buffer, ss)?;
+        write_dbn(buffer, ss)?;
     }
     Ok(())
 }

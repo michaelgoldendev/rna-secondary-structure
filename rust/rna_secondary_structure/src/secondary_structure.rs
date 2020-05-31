@@ -71,7 +71,8 @@ pub fn get_matching_bracket(brace: char) -> Result<char, StructureParseError> {
     Err(StructureParseError::BracketTypeNotRecognised { c: brace })
 }
 
-/// A struct represent a secondary structure and it's corresponding nucleotide sequence.
+/// A struct containing the name, nucleotide sequence, and secondary structure conformation of
+/// a secondary structure.
 pub struct SecondaryStructureRecord {
     /// A name for this record.
     pub name: String,
@@ -85,7 +86,7 @@ pub struct SecondaryStructureRecord {
 
 impl SecondaryStructureRecord {
     /// Constructs a SecondaryStructureRecord from a list of paired sites representing the secondary
-    /// structure configuration. With a default sequence of the same length consisting of all N's.
+    /// structure conformation. With a default sequence of the same length consisting of all N's.
     pub fn new(paired: Vec<i64>) -> SecondaryStructureRecord {
         SecondaryStructureRecord {
             name: "".to_string(),
@@ -94,12 +95,12 @@ impl SecondaryStructureRecord {
         }
     }
 
-    /// Set the nucleotide sequence
+    /// Set the nucleotide sequence.
     pub fn set_sequence(&mut self, sequence: String) {
         self.sequence = sequence;
     }
 
-    /// Set the secondary structure configuration
+    /// Set the secondary structure conformation from a paired sites representation.
     pub fn set_paired(&mut self, paired: Vec<i64>) {
         self.paired = paired;
     }
