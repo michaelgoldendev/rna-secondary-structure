@@ -52,9 +52,12 @@ pub fn get_mountain_vector(paired: &dyn PairedSites) -> Vec<f64> {
 /// use rna_secondary_structure::secondary_structure::from_dotbracketstring;
 /// use rna_secondary_structure::distance_metrics::*;
 /// let paired_exp = from_dotbracketstring("<<<..<<<.<..>>.>..>..>...<<...>..>>.>").unwrap();
+///
 /// let mountain = get_mountain_vector(&paired_exp);
-/// let paired_obs = invert_mountain_vector(&mountain);
-/// assert_eq!(paired_obs, paired_exp);
+/// assert_eq!(invert_mountain_vector(&mountain), paired_exp);
+///
+/// let weighted_mountain = get_weighted_mountain_vector(&paired_exp);
+/// assert_eq!(invert_mountain_vector(&weighted_mountain), paired_exp);
 /// ```
 pub fn invert_mountain_vector(mountain: &[f64]) -> Vec<i64> {
     let mut stack: Vec<i64> = Vec::new();
@@ -95,8 +98,11 @@ pub fn get_mountain_distance(paired1: &dyn PairedSites, paired2: &dyn PairedSite
     Ok(d)
 }
 
-/// Returns the unique secondary structure configuration of the specified length that has the
-/// maximal number of base-pairings.
+/// Returns the unique and valid secondary structure configuration of the specified length that has
+/// the maximal number of base-pairings.
+///
+/// A 'valid' secondary structure defined here to be one with at least two unpaired sites between
+/// every paired of base-paired sites.
 ///
 /// # Examples
 /// ```rust
