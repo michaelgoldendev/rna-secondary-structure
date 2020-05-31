@@ -44,9 +44,9 @@ pub enum StructureParseError {
 }
 
 /// A string of characters representing possible left bracket types
-pub const LEFT_BRACKETS: &str = "(<{[abcdefghijklmnopqrstuvwxyz";
+pub const LEFT_BRACKETS: &str = "(<{[ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 /// A string of characters representing corresponding right bracket types
-pub const RIGHT_BRACKETS: &str = ")>}]ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+pub const RIGHT_BRACKETS: &str = ")>}]abcdefghijklmnopqrstuvwxyz";
 
 fn is_left_bracket(brace: char) -> bool {
     LEFT_BRACKETS.contains(brace)
@@ -280,7 +280,7 @@ pub fn get_dot_bracket_string(paired: &dyn PairedSites) -> Result<String, Struct
 /// assert_eq!(is_pseudoknotted(&non_pseudoknotted).unwrap(), false);
 /// let pseudoknotted = from_dotbracketstring("<<<..((.>>>....))").unwrap();
 /// assert_eq!(is_pseudoknotted(&pseudoknotted).unwrap(), true);
-/// let pseudoknotted2 = from_dotbracketstring("a..<<<..A...>>>....").unwrap();
+/// let pseudoknotted2 = from_dotbracketstring("A..<<<..a...>>>....").unwrap();
 /// assert_eq!(is_pseudoknotted(&pseudoknotted2).unwrap(), true);
 /// ```
 pub fn is_pseudoknotted(paired: &dyn PairedSites) -> Result<bool, StructureParseError> {
