@@ -5,3 +5,4 @@
 pub mod secondary_structure;
 pub mod io;
 pub mod distance_metrics;
+pub mod read_rfam;
