@@ -1,44 +1,22 @@
 //! A module for parsing, reading, and writing various secondary structure formats.
 
 use std::error::Error;
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io;
+use std::io::{BufRead, BufReader};
 use std::iter::*;
 use std::path::Path;
 
 use crate::secondary_structure;
-use crate::secondary_structure::{get_dot_bracket_string, SecondaryStructureRecord};
+use crate::secondary_structure::{from_dotbracketstring, get_dot_bracket_string, SecondaryStructureRecord, StructureParseError};
 
-/// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecords.
-///
-/// # Examples
-///
-/// ```rust
-/// use crate::rna_secondary_structure::io;
-///
-/// let ct_string =
-/// ">example
-/// 1	C	0	2	8	1
-/// 2	G	1	3	5	2
-/// 3	A	2	4	0	3
-/// 4	A	3	5	0	4
-/// 5	C	4	6	2	5
-/// 6	A	5	7	0	6
-/// 7	A	6	8	0	7
-/// 8	G	7	9	1	8
-/// ";
-///
-/// let observed_ss = &io::parse_ct_string(&ct_string.to_string())[0];
-/// assert_eq!(observed_ss.name, "example");
-/// assert_eq!(observed_ss.sequence, "CGAACAAG");
-/// assert_eq!(observed_ss.paired, vec![8, 5, 0, 0, 2, 0, 0, 1]);
-/// ```
-pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
+fn parse_ct(reader: impl BufRead) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
     let mut ls: Vec<SecondaryStructureRecord> = Vec::new();
     let mut sequence = "".to_string();
     let mut paired = Vec::new();
     let mut name = "".to_string();
-    for line in ct_string.lines() {
+    for line in reader.lines() {
+        let line = line?;
         let spl = line.trim().split_whitespace().collect::<Vec<&str>>();
         if !spl.is_empty() && spl[0].starts_with('>') {
             if !paired.is_empty() {
@@ -64,7 +42,40 @@ pub fn parse_ct_string(ct_string: &String) -> Vec<SecondaryStructureRecord> {
         });
         paired.clear();
     }
-    ls
+    Ok(ls)
+}
+
+/// Reads a connect (CT) format string and returns a vector of SecondaryStructureRecords.
+///
+/// # Examples
+///
+/// ```rust
+/// use crate::rna_secondary_structure::io;
+///
+/// let ct_string =
+/// ">example
+/// 1	C	0	2	8	1
+/// 2	G	1	3	5	2
+/// 3	A	2	4	0	3
+/// 4	A	3	5	0	4
+/// 5	C	4	6	2	5
+/// 6	A	5	7	0	6
+/// 7	A	6	8	0	7
+/// 8	G	7	9	1	8
+/// ";
+///
+/// let observed_ss = &io::parse_ct_string(&ct_string.to_string()).unwrap()[0];
+/// assert_eq!(observed_ss.name, "example");
+/// assert_eq!(observed_ss.sequence, "CGAACAAG");
+/// assert_eq!(observed_ss.paired, vec![8, 5, 0, 0, 2, 0, 0, 1]);
+/// ```
+pub fn parse_ct_string(ct_string: &String) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
+    parse_ct(ct_string.as_bytes())
+}
+
+/// Reads a connect (CT) format file and returns a vector of SecondaryStructureRecords.
+pub fn read_ct_file(f: File) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
+    parse_ct(BufReader::new(f))
 }
 
 fn write_ct(buffer: &mut dyn io::Write, ss: &SecondaryStructureRecord) -> Result<(), Box<dyn Error>> {
@@ -122,7 +133,6 @@ pub fn write_records_to_ct_file<'a, I>(path: &Path, records: I) -> Result<(), Bo
 
     Ok(())
 }
-
 
 /// Get a connect (CT) format string representation of a secondary structure and sequence.
 ///
@@ -214,4 +224,49 @@ pub fn write_records_to_dbn_file<'a, I>(path: &Path, records: I) -> Result<(), B
 
     Ok(())
 }
+
+fn parse_dbn(reader: impl BufRead) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
+    let mut ls: Vec<SecondaryStructureRecord> = Vec::new();
+    let mut sequence = "".to_string();
+    let mut name = "".to_string();
+    let mut m = 0;
+    for line in reader.lines() {
+        let line = line?;
+        let line = line.trim();
+        if line.is_empty() {
+            if m == 0 || m == 3 {
+                m = 0;
+            } else if m == 1 {
+                return Err(Box::new(StructureParseError::ExpectedLine {
+                    msg: "Expected a line containing a sequence. Found a blank line.".to_string()
+                }));
+            } else if m == 2 {
+                return Err(Box::new(StructureParseError::ExpectedLine {
+                    msg: "Expected a line containing a dot bracket string. Found a blank line.".to_string()
+                }));
+            }
+        } else if m == 0 || m == 3 {
+            name = line.trim_start_matches('>').to_string();
+            m = 1;
+        } else if m == 1 {
+            sequence = line.to_string();
+            m = 2;
+        } else if m == 2 {
+            ls.push(SecondaryStructureRecord {
+                name: name.clone(),
+                sequence: sequence.clone(),
+                paired: from_dotbracketstring(line)?,
+            });
+            m = 3;
+        }
+    }
+
+    Ok(ls)
+}
+
+/// Reads a dot bracket notation (dbn) format file and returns a vector of SecondaryStructureRecords.
+pub fn read_dbn_file(f: File) -> Result<Vec<SecondaryStructureRecord>, Box<dyn Error>> {
+    parse_dbn(BufReader::new(f))
+}
+
 

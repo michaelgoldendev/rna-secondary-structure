@@ -33,12 +33,14 @@ fn test_ct_strings() {
     };
 
     let mut ct_string = "".to_string();
+    ct_string.push_str("\n"); // test robustness to adding in blank lines
     ct_string.push_str(&io::get_ct_string(&ss1));
     ct_string.push_str(&io::get_ct_string(&ss2));
     ct_string.push_str("\n\n"); // test robustness to adding in blank lines
     ct_string.push_str(&io::get_ct_string(&ss3));
+    ct_string.push_str("\n");
 
-    let ls = io::parse_ct_string(&ct_string);
+    let ls = io::parse_ct_string(&ct_string).unwrap();
 
     assert_eq!(ls[0].sequence, ss1.sequence);
     assert_eq!(ls[0].paired, ss1.paired);

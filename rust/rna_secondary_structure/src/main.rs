@@ -34,7 +34,7 @@ fn main() {
     6	A	5	7	0	6
     7	A	6	8	0	7
     8	G	7	9	1	8";
-    let ls = io::parse_ct_string(&ct_string_expected.parse().unwrap());
+    let ls = io::parse_ct_string(&ct_string_expected.parse().unwrap()).unwrap();
     println!("[{}]", ls.iter().fold(String::new(), |acc, num| acc + &num.to_string() + ", "));
 
     let mut ss = secondary_structure::SecondaryStructureRecord::from_str("(({....))").unwrap_or_else(|err| {

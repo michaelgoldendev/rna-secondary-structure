@@ -1,5 +1,6 @@
 extern crate rna_secondary_structure;
 
+use std::fs::File;
 use std::path::Path;
 
 use rna_secondary_structure::*;
@@ -18,5 +19,10 @@ fn main() {
     ls.push(&ss3);
     write_records_to_ct_file(Path::new("multiple.ct"), &ls).unwrap();
     write_records_to_dbn_file(Path::new("multiple.dbn"), &ls).unwrap();
-    println!("{}", &ss3)
+
+    let ls = read_ct_file(File::open("multiple.ct").unwrap()).unwrap();
+    println!("{:?}", ls);
+
+    let ls = read_dbn_file(File::open("multiple.dbn").unwrap()).unwrap();
+    println!("{:?}", ls);
 }

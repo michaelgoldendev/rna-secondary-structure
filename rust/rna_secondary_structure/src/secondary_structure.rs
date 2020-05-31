@@ -36,6 +36,11 @@ pub enum StructureParseError {
 
     #[error("Paired site(s) to the left have not been consumed.")]
     InputNotConsumed,
+
+    #[error("{msg}")]
+    ExpectedLine {
+        msg: String
+    },
 }
 
 /// A string of characters representing possible left bracket types
