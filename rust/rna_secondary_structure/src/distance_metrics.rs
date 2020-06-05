@@ -59,11 +59,17 @@ pub fn get_mountain_vector(paired: &dyn PairedSites) -> Vec<f64> {
 /// let weighted_mountain = get_weighted_mountain_vector(&paired_exp);
 /// assert_eq!(invert_mountain_vector(&weighted_mountain), paired_exp);
 /// ```
-pub fn invert_mountain_vector(mountain: &[f64]) -> Vec<i64> {
+pub fn invert_mountain_vector<'a, T>(mountain: T) -> Vec<i64>
+    where
+    T: IntoIterator<Item=&'a  f64>,
+    T::IntoIter : ExactSizeIterator<Item=&'a  f64>
+{
+    let it = mountain.into_iter();
+
     let mut stack: Vec<i64> = Vec::new();
-    let mut paired: Vec<i64> = vec![0; mountain.len()];
+    let mut paired: Vec<i64> = vec![0; it.len()];
     let mut last_height = 0.0;
-    for (i, height) in mountain.iter().enumerate() {
+    for (i, height) in it.enumerate() {
         let height = *height;
         if height > last_height {
             stack.push(i as i64)
