@@ -1,4 +1,5 @@
 //! A module for parsing Rfam alignment files that are available on the Rfam ftp server.
+//!
 //! Example file: [ftp://ftp.ebi.ac.uk/pub/databases/Rfam/14.2/Rfam.seed.gz](ftp://ftp.ebi.ac.uk/pub/databases/Rfam/14.2/Rfam.seed.gz).
 
 use std::error::Error;
