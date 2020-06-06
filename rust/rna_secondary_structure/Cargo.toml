@@ -9,3 +9,6 @@ edition = "2018"
 [dependencies]
 thiserror = "1.0"
 flate2 = "1.0.14"
+num-bigint = "0.2.6"
+num-traits = "0.2.11"
+cached = "0.13.1"
