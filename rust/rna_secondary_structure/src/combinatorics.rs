@@ -1,4 +1,4 @@
-//! Tiny module for counting non-pseudoknotted secondary structures.
+//! A tiny module for counting non-pseudoknotted secondary structures.
 
 extern crate num_bigint;
 extern crate num_traits;
